@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0] — 2026-03-29
+
+### Features
+- auto-version bump hook (fix→patch, feat→minor) with CHANGELOG
+
+---
+
 ## [1.0.0] — 2026-03-29
 
 ### Initial Release

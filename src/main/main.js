@@ -409,6 +409,7 @@ function registerIpcHandlers() {
 	ipcMain.handle('tunnel:disconnect', () => disconnectTunnel());
 	ipcMain.handle('tunnel:status', () => ({
 		...tunnelState,
+		endpoint: store.get('server.url', '') || tunnelState.endpoint,
 		killSwitch: store.get('tunnel.killSwitch', false),
 	}));
 	
