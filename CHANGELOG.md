@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2] — 2026-03-29
+
+### Fixes
+- reduce build size — remove node_modules from files, drop unused ws/node-schedule
+
+---
+
 ## [1.1.1] — 2026-03-29
 
 ### Fixes
