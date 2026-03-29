@@ -1,6 +1,6 @@
 {
   "name": "gatecontrol-client",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "GateControl WireGuard Client für Windows",
   "main": "src/main/main.js",
   "author": "GateControl",
@@ -15,12 +15,10 @@
   },
   "dependencies": {
     "axios": "^1.7.0",
-    "electron-store": "^8.2.0",
     "electron-log": "^5.1.0",
+    "electron-store": "^8.2.0",
     "jsqr": "^1.4.0",
-    "koffi": "^2.9.0",
-    "node-schedule": "^2.1.1",
-    "ws": "^8.16.0"
+    "koffi": "^2.9.0"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
@@ -60,7 +58,6 @@
     },
     "files": [
       "src/**/*",
-      "node_modules/**/*",
       "package.json"
     ],
     "extraResources": [

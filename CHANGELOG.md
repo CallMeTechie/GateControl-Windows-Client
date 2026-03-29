@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1] — 2026-03-29
+
+### Fixes
+- always show server URL instead of raw IP in status endpoint
+
+---
+
 ## [1.1.0] — 2026-03-29
 
 ### Features
