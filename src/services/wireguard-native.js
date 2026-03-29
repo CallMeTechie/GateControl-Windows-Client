@@ -436,6 +436,36 @@ class WireGuardNative {
     // Default-Route setzen falls AllowedIPs 0.0.0.0/0 enthält
     const peer = parsed.peers[0];
     if (peer?.AllowedIPs?.includes('0.0.0.0/0')) {
+      // Endpoint-Route über physisches Gateway setzen, damit VPN-Pakete
+      // selbst nicht durch den Tunnel geroutet werden (Routing-Loop)
+      if (peer.Endpoint) {
+        const epMatch = peer.Endpoint.match(/^(.+):(\d+)$/);
+        if (epMatch) {
+          const endpointIP = epMatch[1];
+          try {
+            // Standard-Gateway des aktiven physischen Interfaces ermitteln
+            const { stdout } = await execAsync(
+              'powershell -Command "(Get-NetRoute -DestinationPrefix 0.0.0.0/0 | Sort-Object RouteMetric | Select-Object -First 1).NextHop"'
+            );
+            const gateway = stdout.trim();
+            if (gateway && gateway !== '0.0.0.0') {
+              // Physisches Interface für dieses Gateway finden
+              const { stdout: ifOut } = await execAsync(
+                `powershell -Command "(Get-NetRoute -DestinationPrefix 0.0.0.0/0 | Sort-Object RouteMetric | Select-Object -First 1).InterfaceIndex"`
+              );
+              const ifIndex = ifOut.trim();
+              this._endpointRoute = { endpointIP, gateway, ifIndex };
+              await execAsync(
+                `netsh interface ip add route ${endpointIP}/32 interface=${ifIndex} nexthop=${gateway} metric=1`
+              );
+              this.log.info(`Endpoint-Route: ${endpointIP} via ${gateway} (if=${ifIndex})`);
+            }
+          } catch (err) {
+            this.log.warn(`Endpoint-Route fehlgeschlagen: ${err.message}`);
+          }
+        }
+      }
+
       try {
         await execAsync(
           `netsh interface ip add route 0.0.0.0/0 "${this.tunnelName}" ${ip} metric=5`
@@ -477,6 +507,18 @@ class WireGuardNative {
       }
 
       this.adapter = null;
+    }
+
+    // Endpoint-Route aufräumen
+    if (this._endpointRoute) {
+      try {
+        const { endpointIP, ifIndex } = this._endpointRoute;
+        await execAsync(
+          `netsh interface ip delete route ${endpointIP}/32 interface=${ifIndex}`
+        );
+        this.log.info(`Endpoint-Route entfernt: ${endpointIP}`);
+      } catch { /* Route ggf. schon weg */ }
+      this._endpointRoute = null;
     }
 
     // Netzwerk-Konfiguration aufräumen
