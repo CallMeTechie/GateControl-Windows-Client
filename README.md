@@ -6,7 +6,7 @@ Electron-basierter WireGuard VPN-Client mit nativer WireGuard-Integration (FFI),
 
 | Feature | Beschreibung |
 |---------|-------------|
-| **Native WireGuard** | Direkte FFI-Anbindung an `wireguard.dll` / `wintun.dll` via Koffi — keine externe WireGuard-Installation nötig |
+| **Native WireGuard** | Direkte FFI-Anbindung an `wireguard.dll` / `wintun.dll` via Koffi |
 | **Auto-Connect** | Verbindet beim Windows-Start automatisch |
 | **Kill-Switch** | Blockiert allen Traffic außerhalb des VPN-Tunnels (Windows Firewall) |
 | **Tray-Icon** | Status-Anzeige mit Kontextmenü (grün/gelb/grau) |
