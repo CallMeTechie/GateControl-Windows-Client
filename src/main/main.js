@@ -150,8 +150,8 @@ function updateTray(state) {
 			label: state === 'connected' ? '⬤ Verbunden' : '○ Getrennt',
 			enabled: false,
 		},
-		...(tunnelState.endpoint ? [{
-			label: `Endpoint: ${tunnelState.endpoint}`,
+		...((store.get('server.url', '') || tunnelState.endpoint) ? [{
+			label: `Server: ${store.get('server.url', '') || tunnelState.endpoint}`,
 			enabled: false,
 		}] : []),
 		...(tunnelState.handshake ? [{
@@ -392,7 +392,7 @@ function broadcastState(status, error = null) {
 		status,
 		error,
 		connected: tunnelState.connected,
-		endpoint: tunnelState.endpoint,
+		endpoint: store.get('server.url', '') || tunnelState.endpoint,
 		handshake: tunnelState.handshake,
 		rxBytes: tunnelState.rxBytes,
 		txBytes: tunnelState.txBytes,
