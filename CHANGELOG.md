@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0] — 2026-03-29
+
+### Features
+- CI/CD pipeline (build on push, release on tag)
+
+---
+
 ## [1.1.2] — 2026-03-29
 
 ### Fixes
