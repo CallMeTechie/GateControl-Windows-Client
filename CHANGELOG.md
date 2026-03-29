@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1] — 2026-03-29
+
+### Fixes
+- auto-release on every push to master (build + tag + release)
+
+---
+
 ## [1.2.0] — 2026-03-29
 
 ### Features
