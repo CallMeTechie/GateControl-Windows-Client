@@ -230,10 +230,9 @@ function updateTray(state) {
 // ── Fenster ──────────────────────────────────────────────────
 function createWindow() {
 	mainWindow = new BrowserWindow({
-		width: 590,
+		width: 394,
 		height: 720,
 		minHeight: 600,
-		useContentSize: true,
 		resizable: false,
 		frame: false,
 		transparent: false,
