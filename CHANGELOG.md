@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.16] — 2026-03-30
+
+### Fixes
+- migrate existing config from old encryption key to machine-specific key
+
+---
+
 ## [1.7.15] — 2026-03-30
 
 ### Änderungen
