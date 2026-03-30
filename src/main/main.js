@@ -231,9 +231,10 @@ function updateTray(state) {
 function createWindow() {
 	mainWindow = new BrowserWindow({
 		width: Math.round(590 / screen.getPrimaryDisplay().scaleFactor),
+		maxWidth: Math.round(590 / screen.getPrimaryDisplay().scaleFactor),
 		height: Math.round(720 / screen.getPrimaryDisplay().scaleFactor),
-		minHeight: Math.round(600 / screen.getPrimaryDisplay().scaleFactor),
-		resizable: false,
+		minHeight: Math.round(500 / screen.getPrimaryDisplay().scaleFactor),
+		resizable: true,
 		frame: false,
 		transparent: false,
 		backgroundColor: store.get('app.theme', 'dark') === 'light' ? '#F8F9FB' : '#0F1117',
