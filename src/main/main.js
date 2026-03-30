@@ -664,7 +664,9 @@ async function initServices() {
 				}
 			}
 			tunnelState = { ...tunnelState, ...stats, _lastStatsTime: now };
-			broadcastState(tunnelState.connected ? 'connected' : 'disconnected');
+			const trayState = tunnelState.connected ? 'connected' : 'disconnected';
+			updateTray(trayState);
+			broadcastState(trayState);
 		},
 		wgService,
 		log,
