@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.7] — 2026-03-30
+
+### Dokumentation
+- consolidate CHANGELOG with v1.8.0 theme release
+
+---
+
 ## [1.8.0] — 2026-03-30
 
 ### Features
