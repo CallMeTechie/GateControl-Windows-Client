@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.13] — 2026-03-30
+
+### Fixes
+- important security issues #4-#10
+
+---
+
 ## [1.7.12] — 2026-03-30
 
 ### Fixes
