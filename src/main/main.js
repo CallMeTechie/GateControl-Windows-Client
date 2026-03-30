@@ -232,7 +232,7 @@ function createWindow() {
 	mainWindow = new BrowserWindow({
 		width: Math.round(590 / screen.getPrimaryDisplay().scaleFactor),
 		maxWidth: Math.round(590 / screen.getPrimaryDisplay().scaleFactor),
-		height: Math.round(720 / screen.getPrimaryDisplay().scaleFactor),
+		height: Math.round((store.get('app.windowHeight', 720)) / screen.getPrimaryDisplay().scaleFactor),
 		minHeight: Math.round(500 / screen.getPrimaryDisplay().scaleFactor),
 		resizable: true,
 		frame: false,
@@ -256,6 +256,12 @@ function createWindow() {
 		}
 	});
 	
+	mainWindow.on('resize', () => {
+		const [, height] = mainWindow.getSize();
+		const physicalHeight = Math.round(height * screen.getPrimaryDisplay().scaleFactor);
+		store.set('app.windowHeight', physicalHeight);
+	});
+
 	mainWindow.on('close', (e) => {
 		if (!app.isQuitting) {
 			e.preventDefault();
