@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.2] — 2026-03-30
+
+### Fixes
+- verbose logging for auto-update check and download
+
+---
+
 ## [1.5.1] — 2026-03-30
 
 ### Fixes
