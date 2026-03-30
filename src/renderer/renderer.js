@@ -467,7 +467,8 @@ function updateBandwidthGraph(rxSpeed, txSpeed) {
 	const maxVal = Math.max(...allValues, 1024); // min 1 KB/s scale
 
 	// Grid lines
-	ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+	const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+	ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
 	ctx.lineWidth = 1;
 	for (let i = 1; i < 4; i++) {
 		const y = (h / 4) * i;
@@ -478,7 +479,7 @@ function updateBandwidthGraph(rxSpeed, txSpeed) {
 	}
 
 	// Scale label
-	ctx.fillStyle = 'rgba(255,255,255,0.2)';
+	ctx.fillStyle = isLight ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.2)';
 	ctx.font = '9px monospace';
 	ctx.fillText(formatSpeed(maxVal), 2, 10);
 
@@ -520,7 +521,7 @@ function updateBandwidthGraph(rxSpeed, txSpeed) {
 	ctx.fillRect(w - 90, 4, 8, 8);
 	ctx.fillStyle = 'rgba(59, 130, 246, 0.8)';
 	ctx.fillRect(w - 90, 16, 8, 8);
-	ctx.fillStyle = 'rgba(255,255,255,0.4)';
+	ctx.fillStyle = isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.4)';
 	ctx.font = '9px sans-serif';
 	ctx.fillText('↓ Download', w - 78, 12);
 	ctx.fillText('↑ Upload', w - 78, 24);
