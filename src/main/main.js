@@ -207,8 +207,8 @@ function createWindow() {
 	mainWindow = new BrowserWindow({
 		width: 480,
 		height: 720,
-		minWidth: 420,
 		minHeight: 600,
+		maxWidth: 480,
 		resizable: true,
 		frame: false,
 		transparent: false,
@@ -639,6 +639,7 @@ async function initServices() {
 }
 
 app.whenReady().then(async () => {
+	app.setAppUserModelId('GateControl Client');
 	log.info('GateControl Client wird gestartet...');
 	
 	// Services initialisieren
