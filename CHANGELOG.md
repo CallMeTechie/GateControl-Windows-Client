@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.3] — 2026-03-30
+
+### Fixes
+- split-tunneling — save button, auto-reconnect, IPs only (no domains)
+
+---
+
 ## [1.5.2] — 2026-03-30
 
 ### Fixes
