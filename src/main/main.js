@@ -419,7 +419,13 @@ async function handleDisconnect() {
 // ── Notifications ────────────────────────────────────────────
 function showNotification(title, body) {
 	if (Notification.isSupported()) {
-		new Notification({ title: `GateControl: ${title}`, body }).show();
+		new Notification({
+			title: `GateControl: ${title}`,
+			body,
+			icon: app.isPackaged
+				? path.join(process.resourcesPath, 'resources', 'icons', 'app-icon.png')
+				: path.join(__dirname, '..', '..', 'build', 'icon.png'),
+		}).show();
 	}
 }
 
