@@ -183,6 +183,36 @@ class ApiClient {
 			this.log.debug('Status-Report fehlgeschlagen:', err.message);
 		}
 	}
+
+	/**
+	 * Erreichbare Dienste vom Server abrufen
+	 */
+	async getServices() {
+		if (!this.client) return [];
+
+		try {
+			const res = await this.client.get('/api/v1/client/services');
+			return res.data?.services || [];
+		} catch (err) {
+			this.log.debug('Services-Abfrage fehlgeschlagen:', err.message);
+			return [];
+		}
+	}
+
+	/**
+	 * DNS-Check Endpunkt abfragen
+	 */
+	async dnsCheck() {
+		if (!this.client) return null;
+
+		try {
+			const res = await this.client.get('/api/v1/client/dns-check');
+			return res.data;
+		} catch (err) {
+			this.log.debug('DNS-Check fehlgeschlagen:', err.message);
+			return null;
+		}
+	}
 }
 
 module.exports = ApiClient;

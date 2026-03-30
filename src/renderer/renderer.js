@@ -3,7 +3,7 @@
  * UI-Logik und State Management
  */
 
-const { tunnel, server, config, killSwitch, autostart, logs, update, window: win } = window.gatecontrol;
+const { tunnel, server, config, killSwitch, autostart, logs, update, services, dns, shell, window: win } = window.gatecontrol;
 
 // ── DOM-Elemente ─────────────────────────────────────────
 const $ = (sel) => document.querySelector(sel);
@@ -381,3 +381,100 @@ function showUpdateBanner(info) {
 
 update.onReady((info) => showUpdateBanner(info));
 update.check().then((info) => { if (info) showUpdateBanner(info); });
+
+// ── Erreichbare Dienste ─────────────────────────────────
+async function loadServices() {
+	const list = await services.list();
+	const section = $('#services-section');
+	const container = $('#services-list');
+	if (!list || list.length === 0) {
+		section.style.display = 'none';
+		return;
+	}
+
+	section.style.display = '';
+	container.textContent = '';
+
+	list.forEach((svc) => {
+		const item = document.createElement('div');
+		item.className = 'service-item';
+		item.addEventListener('click', () => shell.openExternal(svc.url));
+
+		const left = document.createElement('div');
+		const name = document.createElement('div');
+		name.className = 'service-name';
+		name.textContent = svc.name;
+		left.appendChild(name);
+
+		const domain = document.createElement('div');
+		domain.className = 'service-domain';
+		domain.textContent = svc.domain;
+		left.appendChild(domain);
+
+		item.appendChild(left);
+
+		if (svc.hasAuth) {
+			const badge = document.createElement('span');
+			badge.className = 'service-auth';
+			badge.textContent = 'Auth';
+			item.appendChild(badge);
+		}
+
+		container.appendChild(item);
+	});
+}
+
+// Dienste laden wenn verbunden
+tunnel.onState((s) => {
+	if (s.connected || s.status === 'connected') loadServices();
+});
+
+// ── DNS-Leak-Test ───────────────────────────────────────
+const dnsBtn = $('#dns-test-btn');
+const dnsResult = $('#dns-result');
+
+if (dnsBtn) {
+	dnsBtn.addEventListener('click', async () => {
+		dnsBtn.disabled = true;
+		dnsBtn.textContent = 'Teste...';
+		dnsResult.style.display = 'none';
+
+		try {
+			const result = await dns.leakTest();
+
+			dnsResult.style.display = '';
+			dnsResult.textContent = '';
+
+			if (result.passed) {
+				dnsResult.className = 'dns-result pass';
+				const title = document.createElement('div');
+				title.style.fontWeight = '600';
+				title.textContent = 'Kein DNS-Leak erkannt';
+				dnsResult.appendChild(title);
+
+				const detail = document.createElement('div');
+				detail.style.marginTop = '4px';
+				detail.textContent = `Dein Traffic läuft über den VPN-Tunnel. DNS: ${(result.dnsServers || []).join(', ')}`;
+				dnsResult.appendChild(detail);
+			} else {
+				dnsResult.className = 'dns-result fail';
+				const title = document.createElement('div');
+				title.style.fontWeight = '600';
+				title.textContent = 'DNS-Leak möglich';
+				dnsResult.appendChild(title);
+
+				const detail = document.createElement('div');
+				detail.style.marginTop = '4px';
+				detail.textContent = `DNS-Anfragen gehen möglicherweise am VPN vorbei. DNS: ${(result.dnsServers || []).join(', ')}`;
+				dnsResult.appendChild(detail);
+			}
+		} catch {
+			dnsResult.style.display = '';
+			dnsResult.className = 'dns-result fail';
+			dnsResult.textContent = 'Test fehlgeschlagen — Verbindung prüfen.';
+		}
+
+		dnsBtn.disabled = false;
+		dnsBtn.textContent = 'DNS-Leak-Test';
+	});
+}

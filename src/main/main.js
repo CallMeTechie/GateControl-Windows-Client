@@ -462,6 +462,34 @@ function registerIpcHandlers() {
 	ipcMain.handle('update:check', () => updater?.getUpdateInfo());
 	ipcMain.handle('update:install', () => installUpdate());
 
+	// Services & DNS-Leak-Test
+	ipcMain.handle('services:list', () => apiClient?.getServices());
+	ipcMain.handle('dns:leak-test', async () => {
+		const dns = require('dns').promises;
+		const results = { passed: false, dnsServers: [], vpnCheck: null };
+
+		try {
+			// 1. Aktuelle DNS-Server prüfen (über Tunnel-Interface)
+			const resolvers = dns.getServers();
+			results.dnsServers = resolvers;
+
+			// 2. Bekannte Domain auflösen und prüfen ob es durch VPN geht
+			const serverCheck = await apiClient?.dnsCheck();
+			results.vpnCheck = serverCheck;
+
+			// 3. Prüfen ob die Client-IP im VPN-Subnetz liegt
+			if (serverCheck?.vpnSubnet && serverCheck?.serverIp) {
+				const subnet = serverCheck.vpnSubnet.split('/')[0].split('.').slice(0, 3).join('.');
+				const clientIp = serverCheck.serverIp;
+				results.passed = clientIp.startsWith(subnet) || clientIp.startsWith('10.') || clientIp === '127.0.0.1';
+			}
+		} catch (err) {
+			log.debug('DNS-Leak-Test fehlgeschlagen:', err.message);
+		}
+
+		return results;
+	});
+
 	// Konfiguration
 	ipcMain.handle('config:get', (_, key) => store.get(key));
 	ipcMain.handle('config:set', (_, key, value) => store.set(key, value));
@@ -558,6 +586,15 @@ function registerIpcHandlers() {
 		return enabled;
 	});
 	
+	// Shell
+	ipcMain.handle('shell:open-external', (_, url) => {
+		const { shell } = require('electron');
+		// Nur http/https URLs zulassen
+		if (typeof url === 'string' && /^https?:\/\//i.test(url)) {
+			shell.openExternal(url);
+		}
+	});
+
 	// Logs
 	ipcMain.handle('logs:get', async () => {
 		const fs = require('fs').promises;

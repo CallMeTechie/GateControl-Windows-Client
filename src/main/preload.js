@@ -53,6 +53,16 @@ contextBridge.exposeInMainWorld('gatecontrol', {
 		get: () => ipcRenderer.invoke('logs:get'),
 	},
 	
+	// ── Services ─────────────────────────────────────────
+	services: {
+		list: () => ipcRenderer.invoke('services:list'),
+	},
+
+	// ── DNS ──────────────────────────────────────────────
+	dns: {
+		leakTest: () => ipcRenderer.invoke('dns:leak-test'),
+	},
+
 	// ── Update ───────────────────────────────────────────
 	update: {
 		check:   () => ipcRenderer.invoke('update:check'),
@@ -62,6 +72,11 @@ contextBridge.exposeInMainWorld('gatecontrol', {
 			ipcRenderer.on('update-ready', handler);
 			return () => ipcRenderer.removeListener('update-ready', handler);
 		},
+	},
+
+	// ── Shell ────────────────────────────────────────────
+	shell: {
+		openExternal: (url) => ipcRenderer.invoke('shell:open-external', url),
 	},
 
 	// ── Fenster ──────────────────────────────────────────
