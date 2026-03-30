@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.12] — 2026-03-30
+
+### Fixes
+- critical security — input validation for all shell commands, kill-switch crash recovery
+
+---
+
 ## [1.7.11] — 2026-03-30
 
 ### Fixes
