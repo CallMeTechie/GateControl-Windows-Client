@@ -581,7 +581,7 @@ if (dnsBtn) {
 
 				const detail = document.createElement('div');
 				detail.style.marginTop = '4px';
-				detail.textContent = `DNS-Anfragen gehen möglicherweise am VPN vorbei. DNS: ${(result.dnsServers || []).join(', ')}`;
+				detail.textContent = `DNS-Anfragen gehen möglicherweise am VPN vorbei. Aktiviere den Kill-Switch um dies zu unterbinden. DNS: ${(result.dnsServers || []).join(', ')}`;
 				dnsResult.appendChild(detail);
 			}
 		} catch {
