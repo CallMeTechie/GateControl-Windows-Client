@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1] — 2026-03-30
+
+### Dokumentation
+- complete documentation update (README, CHANGELOG, USER-GUIDE)
+
+---
+
 ## [1.6.0] — 2026-03-30
 
 ### Features
