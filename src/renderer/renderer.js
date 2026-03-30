@@ -346,14 +346,50 @@ el.optPollInterval.addEventListener('change', (e) => {
 });
 
 // ── Split-Tunneling ─────────────────────────────────────
-el.optSplitTunnel.addEventListener('change', (e) => {
+el.optSplitTunnel.addEventListener('change', async (e) => {
 	config.set('tunnel.splitTunnel', e.target.checked);
 	el.splitRoutesSection.style.display = e.target.checked ? '' : 'none';
+
+	// Wenn verbunden: Reconnect anbieten
+	if (state.connected) {
+		showSplitStatus(e.target.checked
+			? 'Split-Tunneling wird nach Neuverbindung aktiv.'
+			: 'Full-Tunnel wird nach Neuverbindung aktiv.', 'info');
+		await tunnel.disconnect();
+		await tunnel.connect();
+	}
 });
 
-el.optSplitRoutes.addEventListener('change', (e) => {
-	config.set('tunnel.splitRoutes', e.target.value);
+$('#btn-save-split').addEventListener('click', async () => {
+	const routes = el.optSplitRoutes.value.trim();
+	config.set('tunnel.splitRoutes', routes);
+
+	if (!routes) {
+		showSplitStatus('Keine Routen eingetragen.', 'warn');
+		return;
+	}
+
+	const count = routes.split('\n').filter(l => l.trim()).length;
+	showSplitStatus(`${count} Route(n) gespeichert. Verbindung wird neu aufgebaut...`, 'info');
+
+	// Reconnect wenn verbunden
+	if (state.connected) {
+		await tunnel.disconnect();
+		await tunnel.connect();
+	} else {
+		showSplitStatus(`${count} Route(n) gespeichert. Wird beim nächsten Verbinden aktiv.`, 'info');
+	}
 });
+
+function showSplitStatus(msg, type) {
+	const el = $('#split-status');
+	if (!el) return;
+	el.style.display = '';
+	el.textContent = msg;
+	el.style.color = type === 'warn' ? 'var(--warn, #F59E0B)' : 'var(--accent)';
+	el.style.background = type === 'warn' ? 'rgba(245,158,11,0.1)' : 'rgba(34,197,94,0.1)';
+	setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
 
 // ── Logs ─────────────────────────────────────────────────
 async function refreshLogs() {

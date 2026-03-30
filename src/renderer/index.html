@@ -196,18 +196,20 @@
 					<div class="toggle-row compact">
 						<div>
 							<span class="toggle-label">Split-Tunneling</span>
-							<div class="toggle-desc" style="font-size:10px;color:var(--text-3)">Nur bestimmte IPs/Domains durch den VPN-Tunnel</div>
+							<div class="toggle-desc" style="font-size:10px;color:var(--text-3)">Nur bestimmte IPs/Subnetze durch den VPN-Tunnel leiten</div>
 						</div>
 						<label class="switch"><input type="checkbox" id="opt-split-tunnel"><span class="slider"></span></label>
 					</div>
 					<div id="split-routes-section" style="display:none">
 						<div class="field">
-							<label class="field-label" for="opt-split-routes">IPs, Subnetze oder Domains (eine pro Zeile)</label>
-							<textarea class="field-input mono" id="opt-split-routes" rows="4" placeholder="10.0.0.0/8&#10;192.168.1.0/24&#10;intranet.example.com" style="resize:vertical;font-size:11px"></textarea>
+							<label class="field-label" for="opt-split-routes">IPs und Subnetze (eine pro Zeile)</label>
+							<textarea class="field-input mono" id="opt-split-routes" rows="4" placeholder="10.0.0.0/8&#10;192.168.1.0/24&#10;172.16.0.0/12" style="resize:vertical;font-size:11px"></textarea>
 						</div>
 						<div style="font-size:10px;color:var(--text-3);margin-top:4px">
-							Beispiele: <code>10.0.0.0/8</code>, <code>192.168.1.100</code>, <code>internal.company.com</code>
+							Beispiele: <code>10.0.0.0/8</code>, <code>192.168.1.0/24</code>, <code>172.16.5.100</code>
 						</div>
+						<button class="btn btn-secondary" id="btn-save-split" style="margin-top:8px">Speichern</button>
+						<div id="split-status" style="display:none;font-size:10px;margin-top:6px;padding:6px 8px;border-radius:var(--radius-sm)"></div>
 					</div>
 				</div>
 

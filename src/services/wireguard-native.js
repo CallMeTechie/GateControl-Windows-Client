@@ -526,46 +526,55 @@ class WireGuardNative {
 
     } else if (splitTunnelRoutes) {
       // Split-Tunnel: Nur bestimmte IPs/Subnetze durch VPN
-      this.log.info('Split-Tunneling aktiv');
+      this.log.info(`Split-Tunneling aktiv, konfiguriere Routen...`);
       this._splitRoutes = [];
 
       const entries = splitTunnelRoutes.split('\n')
         .map(s => s.trim())
-        .filter(s => s && !s.startsWith('#'));
+        .filter(s => s && !s.startsWith('#') && /^[\d./]+$/.test(s));
+
+      if (entries.length === 0) {
+        this.log.warn('Split-Tunneling: Keine gültigen IP-Einträge gefunden');
+      }
 
       for (const entry of entries) {
         try {
-          let routeTarget = entry;
-
-          // Domain → IP auflösen
-          if (!/^[\d.\/]+$/.test(entry)) {
-            const resolved = await dns.lookup(entry, { family: 4 });
-            routeTarget = resolved.address;
-            this.log.info(`Split-Route: ${entry} → ${routeTarget}`);
-          }
-
-          // CIDR hinzufügen falls nicht vorhanden
-          if (!routeTarget.includes('/')) routeTarget += '/32';
+          const routeTarget = entry.includes('/') ? entry : `${entry}/32`;
 
           await execAsync(
             `netsh interface ip add route ${routeTarget} "${this.tunnelName}" ${ip} metric=5`
           );
           this._splitRoutes.push(routeTarget);
-          this.log.info(`Split-Route hinzugefügt: ${routeTarget}`);
+          this.log.info(`Split-Route: ${routeTarget} → Tunnel`);
         } catch (err) {
           this.log.warn(`Split-Route fehlgeschlagen für ${entry}: ${err.message}`);
         }
       }
 
-      // VPN-Subnetz immer routen (für Server-Kommunikation)
+      // VPN-Subnetz immer routen (Server-API-Kommunikation)
       const vpnSubnet = parsed.address.split('/')[0].split('.').slice(0, 3).join('.') + '.0/24';
       try {
         await execAsync(
           `netsh interface ip add route ${vpnSubnet} "${this.tunnelName}" ${ip} metric=5`
         );
         this._splitRoutes.push(vpnSubnet);
-        this.log.info(`VPN-Subnetz Route: ${vpnSubnet}`);
       } catch {}
+
+      // Endpoint-Route für VPN-Server selbst
+      if (peer?.Endpoint) {
+        const epMatch = peer.Endpoint.match(/^(.+):(\d+)$/);
+        if (epMatch) {
+          const endpointIP = epMatch[1];
+          try {
+            await execAsync(
+              `netsh interface ip add route ${endpointIP}/32 "${this.tunnelName}" ${ip} metric=5`
+            );
+            this._splitRoutes.push(`${endpointIP}/32`);
+          } catch {}
+        }
+      }
+
+      this.log.info(`Split-Tunneling: ${this._splitRoutes.length} Routen aktiv`);
     }
   }
 
