@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0] — 2026-03-30
+
+### Features
+- split-tunneling and peer expiry warning
+
+---
+
 ## [1.4.3] — 2026-03-30
 
 ### Fixes
