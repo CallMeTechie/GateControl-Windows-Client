@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.15] — 2026-03-30
+
+### Änderungen
+- code simplification from 3-agent review
+
+---
+
 ## [1.7.14] — 2026-03-30
 
 ### Fixes
