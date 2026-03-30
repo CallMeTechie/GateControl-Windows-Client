@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.9] — 2026-03-30
+
+### Fixes
+- remove duplicate Split-Tunneling heading, rounded window corners, proper toggle-row borders
+
+---
+
 ## [1.7.8] — 2026-03-30
 
 ### Fixes
