@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1] — 2026-03-30
+
+### Fixes
+- show app logo in Windows notifications
+
+---
+
 ## [1.5.0] — 2026-03-30
 
 ### Features
