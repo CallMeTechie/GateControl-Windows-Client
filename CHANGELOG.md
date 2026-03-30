@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.3] — 2026-03-30
+
+### Fixes
+- bandwidth chart labels readable in light theme
+
+---
+
 ## [1.7.2] — 2026-03-30
 
 ### Fixes
