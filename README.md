@@ -8,12 +8,15 @@ Electron-basierter WireGuard VPN-Client mit nativer WireGuard-Integration (FFI),
 |---------|-------------|
 | **Native WireGuard** | Direkte FFI-Anbindung an `wireguard.dll` / `wintun.dll` via Koffi |
 | **Auto-Connect** | Verbindet beim Windows-Start automatisch |
+| **Auto-Update** | Prüft automatisch auf neue Versionen, stiller Download, Update-Banner |
 | **Kill-Switch** | Blockiert allen Traffic außerhalb des VPN-Tunnels (Windows Firewall) |
-| **Tray-Icon** | Status-Anzeige mit Kontextmenü (grün/gelb/grau) |
+| **Erreichbare Dienste** | Zeigt alle Server-Routen als klickbare Liste nach Verbindungsaufbau |
+| **DNS-Leak-Test** | Prüft ob DNS-Anfragen durch den VPN-Tunnel gehen |
+| **Tray-Icon** | Status-Anzeige mit Kontextmenü und Versionsanzeige (grün/gelb/grau) |
 | **Config-Import** | Per `.conf`-Datei oder QR-Code (Webcam) |
 | **Server-Integration** | Config-Pull, automatische Updates, Heartbeat & Status-Reporting |
 | **Auto-Reconnect** | Exponential Backoff bei Verbindungsabbruch (2s → 60s, max 10 Versuche) |
-| **Traffic-Statistiken** | Echtzeit RX/TX, Handshake-Alter, Endpoint-Anzeige |
+| **Traffic-Statistiken** | Echtzeit RX/TX, Handshake-Alter, Server-URL-Anzeige |
 
 ## Voraussetzungen
 

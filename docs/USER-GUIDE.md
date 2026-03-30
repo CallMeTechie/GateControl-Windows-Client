@@ -11,16 +11,19 @@ Vollständige Anleitung für Installation, Einrichtung und Nutzung des GateContr
 3. [Ersteinrichtung](#ersteinrichtung)
 4. [Verbindung herstellen](#verbindung-herstellen)
 5. [Die Benutzeroberfläche](#die-benutzeroberfläche)
-6. [Kill-Switch](#kill-switch)
-7. [Tray-Icon](#tray-icon)
-8. [Konfiguration importieren](#konfiguration-importieren)
-9. [Einstellungen](#einstellungen)
-10. [Auto-Reconnect](#auto-reconnect)
-11. [Server-Synchronisation](#server-synchronisation)
-12. [Logs und Fehlerbehebung](#logs-und-fehlerbehebung)
-13. [Deinstallation](#deinstallation)
-14. [Datenspeicherung](#datenspeicherung)
-15. [Häufige Probleme](#häufige-probleme)
+6. [Erreichbare Dienste](#erreichbare-dienste)
+7. [DNS-Leak-Test](#dns-leak-test)
+8. [Kill-Switch](#kill-switch)
+9. [Tray-Icon](#tray-icon)
+10. [Konfiguration importieren](#konfiguration-importieren)
+11. [Einstellungen](#einstellungen)
+12. [Auto-Update](#auto-update)
+13. [Auto-Reconnect](#auto-reconnect)
+14. [Server-Synchronisation](#server-synchronisation)
+15. [Logs und Fehlerbehebung](#logs-und-fehlerbehebung)
+16. [Deinstallation](#deinstallation)
+17. [Datenspeicherung](#datenspeicherung)
+18. [Häufige Probleme](#häufige-probleme)
 
 ---
 
@@ -106,16 +109,22 @@ Den **Disconnect**-Button klicken oder im Tray-Menü **Trennen** wählen.
 
 Die App hat drei Seiten, zwischen denen über die Navigation oben gewechselt wird.
 
+### Titlebar
+
+In der Titelleiste wird neben "GateControl" die aktuelle **Versionsnummer** angezeigt (z.B. `v1.3.0`).
+
 ### Status-Seite (Startseite)
 
 | Element | Beschreibung |
 |---------|-------------|
 | **Verbindungsring** | Grün = verbunden, Gelb = verbinde, Grau = getrennt |
 | **Connect/Disconnect** | Hauptschalter für den VPN-Tunnel |
-| **Endpoint** | IP-Adresse und Port des WireGuard-Servers |
+| **Server** | URL des GateControl-Servers |
 | **Handshake** | Zeitpunkt des letzten erfolgreichen Handshakes |
 | **Download/Upload** | Übertragene Datenmenge seit Verbindungsaufbau |
 | **Kill-Switch** | Schalter für den Netzwerk-Schutz |
+| **Erreichbare Dienste** | Liste der konfigurierten Routen auf dem Server (erscheint nach Verbindung) |
+| **DNS-Leak-Test** | Button zum Prüfen ob DNS-Anfragen durch den VPN-Tunnel gehen |
 
 ### Settings-Seite
 
@@ -124,6 +133,43 @@ Konfiguration von Server-Verbindung, App-Verhalten und Config-Import.
 ### Logs-Seite
 
 Echtzeit-Anzeige der letzten 200 Log-Zeilen mit Aktualisieren-Button.
+
+---
+
+## Erreichbare Dienste
+
+Nach dem Verbindungsaufbau zeigt die Status-Seite eine Liste aller auf dem GateControl-Server konfigurierten HTTP-Routen an.
+
+| Information | Beschreibung |
+|------------|-------------|
+| **Name** | Name oder Domain der Route |
+| **Domain** | Die vollständige Domain des Dienstes |
+| **Auth-Badge** | Zeigt an ob die Route eine Authentifizierung erfordert |
+
+Ein Klick auf einen Dienst öffnet ihn direkt im Standard-Browser.
+
+> **Hinweis:** Es werden nur aktivierte HTTP-Routen angezeigt. Layer-4 (TCP/UDP) Routen erscheinen nicht in der Liste.
+
+---
+
+## DNS-Leak-Test
+
+Der DNS-Leak-Test prüft, ob DNS-Anfragen tatsächlich durch den VPN-Tunnel geleitet werden oder am Tunnel vorbei ins offene Internet gehen.
+
+### Test durchführen
+
+1. VPN-Verbindung herstellen
+2. Auf der Status-Seite **DNS-Leak-Test** klicken
+3. Der Test läuft automatisch (wenige Sekunden)
+
+### Ergebnisse
+
+| Ergebnis | Bedeutung |
+|----------|-----------|
+| **Kein DNS-Leak erkannt** (grün) | DNS-Anfragen laufen über den VPN-Tunnel. Sicher. |
+| **DNS-Leak möglich** (rot) | DNS-Anfragen gehen möglicherweise am VPN vorbei. Empfehlung: Kill-Switch aktivieren oder DNS-Einstellungen prüfen. |
+
+Der Test zeigt zusätzlich die aktuell verwendeten DNS-Server an.
 
 ---
 
@@ -234,6 +280,36 @@ Es gibt drei Wege, eine WireGuard-Konfiguration zu laden:
 | **Auto-Connect** | An | Stellt die VPN-Verbindung beim App-Start automatisch her |
 | **Verbindungsprüfung** | 30 Sek. | Intervall für Handshake-Überprüfung (5 bis 300 Sekunden) |
 | **Config-Polling** | 300 Sek. | Intervall für Server-Konfigurations-Updates (30 bis 3600 Sekunden) |
+
+---
+
+## Auto-Update
+
+Die App prüft automatisch ob eine neue Version verfügbar ist und bietet die Installation an.
+
+### Ablauf
+
+1. **10 Sekunden nach App-Start** wird der GateControl-Server nach Updates gefragt
+2. Danach wird **alle 6 Stunden** erneut geprüft
+3. Wenn ein Update verfügbar ist, wird der Installer **im Hintergrund heruntergeladen**
+4. Nach dem Download erscheint ein **Banner am unteren Rand**: "Update vX.Y.Z bereit zur Installation"
+5. **"Jetzt neustarten"** klicken: Tunnel wird sicher getrennt, Kill-Switch deaktiviert, Installer gestartet
+6. **"Später"** klicken: Banner verschwindet, Update wird beim nächsten Beenden erneut angeboten
+
+### Tray-Menü
+
+Wenn ein Update bereit ist, erscheint im Tray-Kontextmenü ein zusätzlicher Eintrag:
+
+```
+⬆ Update v1.4.0 installieren
+```
+
+### Voraussetzungen
+
+- Der GateControl-Server muss erreichbar sein
+- Der Server muss Zugriff auf die GitHub Releases des Client-Repos haben
+- Bei privaten Repos muss `GC_CLIENT_GITHUB_TOKEN` auf dem Server gesetzt sein
+- Bei öffentlichen Repos ist keine zusätzliche Konfiguration nötig
 
 ---
 
