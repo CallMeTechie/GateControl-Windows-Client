@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.2] — 2026-03-30
+
+### Fixes
+- revert aggressive DNS override, DNS leak protection is kill-switch responsibility
+
+---
+
 ## [1.4.1] — 2026-03-30
 
 ### Fixes
