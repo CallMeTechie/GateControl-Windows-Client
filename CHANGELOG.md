@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2] — 2026-03-30
+
+### Dokumentation
+- Auto-Update, DNS-Leak-Test, Services und Versionsanzeige dokumentiert
+
+---
+
 ## [1.3.1] — 2026-03-30
 
 ### Fixes
