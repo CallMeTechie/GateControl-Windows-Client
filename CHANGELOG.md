@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.4] — 2026-03-30
+
+### Fixes
+- fixed window size 590x720, not resizable
+
+---
+
 ## [1.7.3] — 2026-03-30
 
 ### Fixes
