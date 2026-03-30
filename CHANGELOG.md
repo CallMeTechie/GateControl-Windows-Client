@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0] — 2026-03-30
+
+### Features
+- accessible services list and DNS leak test
+
+---
+
 ## [1.2.4] — 2026-03-30
 
 ### Dokumentation
