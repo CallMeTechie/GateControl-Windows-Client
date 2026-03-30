@@ -56,6 +56,15 @@ contextBridge.exposeInMainWorld('gatecontrol', {
 		get: () => ipcRenderer.invoke('logs:get'),
 	},
 	
+	// ── Peer ─────────────────────────────────────────────
+	peer: {
+		onExpiry: (cb) => {
+			const handler = (_, info) => cb(info);
+			ipcRenderer.on('peer-expiry', handler);
+			return () => ipcRenderer.removeListener('peer-expiry', handler);
+		},
+	},
+
 	// ── Services ─────────────────────────────────────────
 	services: {
 		list: () => ipcRenderer.invoke('services:list'),

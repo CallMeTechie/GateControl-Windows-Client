@@ -47,6 +47,8 @@ const store = new Store({
 				interfaceName: { type: 'string', default: 'gatecontrol0' },
 				autoConnect:   { type: 'boolean', default: true },
 				killSwitch:    { type: 'boolean', default: false },
+				splitTunnel:   { type: 'boolean', default: false },
+				splitRoutes:   { type: 'string', default: '' },
 				configPath:    { type: 'string', default: '' },
 			},
 			default: {},
@@ -306,7 +308,7 @@ async function connectTunnel() {
 		}
 		
 		// Tunnel starten
-		await wgService.connect(WG_CONFIG_FILE);
+		await wgService.connect(WG_CONFIG_FILE, store.get('tunnel.splitTunnel') ? store.get('tunnel.splitRoutes', '') : null);
 		
 		tunnelState.connected = true;
 		tunnelState.connectedSince = new Date();
@@ -319,6 +321,9 @@ async function connectTunnel() {
 		
 		showNotification('Verbunden', 'GateControl VPN-Tunnel ist aktiv.');
 		log.info('Tunnel erfolgreich verbunden');
+
+		// Peer-Ablauf prüfen
+		checkPeerExpiry();
 		
 	} catch (err) {
 		log.error('Tunnel-Verbindung fehlgeschlagen:', err);
@@ -389,7 +394,7 @@ async function handleDisconnect() {
 		
 		try {
 			await wgService.disconnect().catch(() => {});
-			await wgService.connect(WG_CONFIG_FILE);
+			await wgService.connect(WG_CONFIG_FILE, store.get('tunnel.splitTunnel') ? store.get('tunnel.splitRoutes', '') : null);
 			
 			tunnelState.connected = true;
 			tunnelState.connectedSince = new Date();
@@ -415,6 +420,38 @@ async function handleDisconnect() {
 function showNotification(title, body) {
 	if (Notification.isSupported()) {
 		new Notification({ title: `GateControl: ${title}`, body }).show();
+	}
+}
+
+// ── Peer-Ablauf-Warnung ─────────────────────────────────
+async function checkPeerExpiry() {
+	try {
+		const peerInfo = await apiClient?.getPeerInfo();
+		if (!peerInfo?.expiresAt) return;
+
+		const expiresAt = new Date(peerInfo.expiresAt);
+		const now = new Date();
+		const daysLeft = Math.ceil((expiresAt - now) / 86400000);
+
+		if (daysLeft <= 0) {
+			showNotification('Peer abgelaufen', 'Dein VPN-Zugang ist abgelaufen. Kontaktiere den Administrator.');
+			mainWindow?.webContents.send('peer-expiry', { daysLeft: 0, expiresAt: peerInfo.expiresAt });
+		} else if (daysLeft <= 1) {
+			showNotification('Peer läuft heute ab', 'Dein VPN-Zugang läuft in weniger als 24 Stunden ab.');
+			mainWindow?.webContents.send('peer-expiry', { daysLeft, expiresAt: peerInfo.expiresAt });
+		} else if (daysLeft <= 3) {
+			showNotification('Peer läuft bald ab', `Dein VPN-Zugang läuft in ${daysLeft} Tagen ab.`);
+			mainWindow?.webContents.send('peer-expiry', { daysLeft, expiresAt: peerInfo.expiresAt });
+		} else if (daysLeft <= 7) {
+			showNotification('Peer-Ablauf Hinweis', `Dein VPN-Zugang läuft in ${daysLeft} Tagen ab.`);
+			mainWindow?.webContents.send('peer-expiry', { daysLeft, expiresAt: peerInfo.expiresAt });
+		}
+
+		if (daysLeft <= 7) {
+			log.info(`Peer läuft ab in ${daysLeft} Tagen (${peerInfo.expiresAt})`);
+		}
+	} catch (err) {
+		log.debug('Peer-Ablauf-Prüfung fehlgeschlagen:', err.message);
 	}
 }
 

@@ -382,7 +382,7 @@ class WireGuardNative {
   /**
    * Tunnel verbinden
    */
-  async connect(configPath) {
+  async connect(configPath, splitTunnelRoutes = null) {
     if (!configPath) throw new Error('Kein Konfigurationspfad angegeben');
 
     // Config lesen und parsen
@@ -431,7 +431,7 @@ class WireGuardNative {
     }
 
     // IP-Adresse und DNS konfigurieren
-    await this._configureNetwork(parsed);
+    await this._configureNetwork(parsed, splitTunnelRoutes);
 
     this.log.info('Tunnel-Verbindung hergestellt');
   }
@@ -439,7 +439,7 @@ class WireGuardNative {
   /**
    * IP-Adresse und DNS über netsh konfigurieren
    */
-  async _configureNetwork(parsed) {
+  async _configureNetwork(parsed, splitTunnelRoutes = null) {
     if (!parsed.address) return;
 
     // Address: z.B. "10.8.0.2/24" → IP + Maske
@@ -483,23 +483,23 @@ class WireGuardNative {
       } catch {}
     }
 
-    // Default-Route setzen falls AllowedIPs 0.0.0.0/0 enthält
+    // Routing konfigurieren
     const peer = parsed.peers[0];
-    if (peer?.AllowedIPs?.includes('0.0.0.0/0')) {
-      // Endpoint-Route über physisches Gateway setzen, damit VPN-Pakete
-      // selbst nicht durch den Tunnel geroutet werden (Routing-Loop)
+    const isFullTunnel = peer?.AllowedIPs?.includes('0.0.0.0/0');
+
+    if (isFullTunnel && !splitTunnelRoutes) {
+      // Full-Tunnel: Alles durch VPN
+      // Endpoint-Route über physisches Gateway (verhindert Routing-Loop)
       if (peer.Endpoint) {
         const epMatch = peer.Endpoint.match(/^(.+):(\d+)$/);
         if (epMatch) {
           const endpointIP = epMatch[1];
           try {
-            // Standard-Gateway des aktiven physischen Interfaces ermitteln
             const { stdout } = await execAsync(
               'powershell -Command "(Get-NetRoute -DestinationPrefix 0.0.0.0/0 | Sort-Object RouteMetric | Select-Object -First 1).NextHop"'
             );
             const gateway = stdout.trim();
             if (gateway && gateway !== '0.0.0.0') {
-              // Physisches Interface für dieses Gateway finden
               const { stdout: ifOut } = await execAsync(
                 `powershell -Command "(Get-NetRoute -DestinationPrefix 0.0.0.0/0 | Sort-Object RouteMetric | Select-Object -First 1).InterfaceIndex"`
               );
@@ -523,6 +523,49 @@ class WireGuardNative {
       } catch (err) {
         this.log.debug(`Route-Konfiguration: ${err.message}`);
       }
+
+    } else if (splitTunnelRoutes) {
+      // Split-Tunnel: Nur bestimmte IPs/Subnetze durch VPN
+      this.log.info('Split-Tunneling aktiv');
+      this._splitRoutes = [];
+
+      const entries = splitTunnelRoutes.split('\n')
+        .map(s => s.trim())
+        .filter(s => s && !s.startsWith('#'));
+
+      for (const entry of entries) {
+        try {
+          let routeTarget = entry;
+
+          // Domain → IP auflösen
+          if (!/^[\d.\/]+$/.test(entry)) {
+            const resolved = await dns.lookup(entry, { family: 4 });
+            routeTarget = resolved.address;
+            this.log.info(`Split-Route: ${entry} → ${routeTarget}`);
+          }
+
+          // CIDR hinzufügen falls nicht vorhanden
+          if (!routeTarget.includes('/')) routeTarget += '/32';
+
+          await execAsync(
+            `netsh interface ip add route ${routeTarget} "${this.tunnelName}" ${ip} metric=5`
+          );
+          this._splitRoutes.push(routeTarget);
+          this.log.info(`Split-Route hinzugefügt: ${routeTarget}`);
+        } catch (err) {
+          this.log.warn(`Split-Route fehlgeschlagen für ${entry}: ${err.message}`);
+        }
+      }
+
+      // VPN-Subnetz immer routen (für Server-Kommunikation)
+      const vpnSubnet = parsed.address.split('/')[0].split('.').slice(0, 3).join('.') + '.0/24';
+      try {
+        await execAsync(
+          `netsh interface ip add route ${vpnSubnet} "${this.tunnelName}" ${ip} metric=5`
+        );
+        this._splitRoutes.push(vpnSubnet);
+        this.log.info(`VPN-Subnetz Route: ${vpnSubnet}`);
+      } catch {}
     }
   }
 
@@ -557,6 +600,17 @@ class WireGuardNative {
       }
 
       this.adapter = null;
+    }
+
+    // Split-Routen aufräumen
+    if (this._splitRoutes && this._splitRoutes.length > 0) {
+      for (const route of this._splitRoutes) {
+        try {
+          await execAsync(`netsh interface ip delete route ${route} "${this.tunnelName}"`);
+        } catch {}
+      }
+      this.log.info(`${this._splitRoutes.length} Split-Routen entfernt`);
+      this._splitRoutes = null;
     }
 
     // DNS-Cache leeren

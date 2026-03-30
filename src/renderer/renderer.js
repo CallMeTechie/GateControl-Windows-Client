@@ -3,7 +3,7 @@
  * UI-Logik und State Management
  */
 
-const { tunnel, server, config, killSwitch, autostart, logs, update, services, dns, shell, getVersion, window: win } = window.gatecontrol;
+const { tunnel, server, config, killSwitch, autostart, logs, update, services, dns, shell, peer, getVersion, window: win } = window.gatecontrol;
 
 // Version anzeigen
 getVersion().then(v => {
@@ -39,6 +39,9 @@ const el = {
 	optAutoconnect: $('#opt-autoconnect'),
 	optCheckInterval: $('#opt-check-interval'),
 	optPollInterval:  $('#opt-poll-interval'),
+	optSplitTunnel: $('#opt-split-tunnel'),
+	optSplitRoutes: $('#opt-split-routes'),
+	splitRoutesSection: $('#split-routes-section'),
 	
 	// Logs
 	logOutput:    $('#log-output'),
@@ -179,6 +182,9 @@ config.getAll().then(cfg => {
 	el.optAutoconnect.checked = cfg.tunnel?.autoConnect ?? true;
 	el.optCheckInterval.value = cfg.app?.checkInterval ?? 30;
 	el.optPollInterval.value = cfg.app?.configPollInterval ?? 300;
+	el.optSplitTunnel.checked = cfg.tunnel?.splitTunnel ?? false;
+	el.optSplitRoutes.value = cfg.tunnel?.splitRoutes || '';
+	el.splitRoutesSection.style.display = el.optSplitTunnel.checked ? '' : 'none';
 });
 
 // API-Key anzeigen/verbergen
@@ -339,6 +345,16 @@ el.optPollInterval.addEventListener('change', (e) => {
 	config.set('app.configPollInterval', val);
 });
 
+// ── Split-Tunneling ─────────────────────────────────────
+el.optSplitTunnel.addEventListener('change', (e) => {
+	config.set('tunnel.splitTunnel', e.target.checked);
+	el.splitRoutesSection.style.display = e.target.checked ? '' : 'none';
+});
+
+el.optSplitRoutes.addEventListener('change', (e) => {
+	config.set('tunnel.splitRoutes', e.target.value);
+});
+
 // ── Logs ─────────────────────────────────────────────────
 async function refreshLogs() {
 	el.logOutput.textContent = 'Lade Logs...';
@@ -496,6 +512,33 @@ function showUpdateBanner(info) {
 }
 
 update.onReady((info) => showUpdateBanner(info));
+
+// ── Peer-Ablauf-Warnung ─────────────────────────────────
+peer.onExpiry((info) => {
+	const existing = $('#expiry-banner');
+	if (existing) existing.remove();
+
+	const banner = document.createElement('div');
+	banner.id = 'expiry-banner';
+
+	let msg, color;
+	if (info.daysLeft <= 0) {
+		msg = 'Dein VPN-Zugang ist abgelaufen!';
+		color = 'var(--error)';
+	} else if (info.daysLeft <= 1) {
+		msg = 'Dein VPN-Zugang läuft heute ab!';
+		color = 'var(--error)';
+	} else {
+		msg = `Dein VPN-Zugang läuft in ${info.daysLeft} Tagen ab`;
+		color = info.daysLeft <= 3 ? 'var(--warn, #F59E0B)' : 'var(--text-2)';
+	}
+
+	banner.style.cssText = `padding:8px 12px;margin-top:8px;border-radius:var(--radius);font-size:11px;text-align:center;border:1px solid ${color};color:${color};background:rgba(0,0,0,0.2)`;
+	banner.textContent = msg;
+
+	const statsGrid = $('#stats-grid');
+	if (statsGrid) statsGrid.parentNode.insertBefore(banner, statsGrid.nextSibling);
+});
 update.check().then((info) => { if (info) showUpdateBanner(info); });
 
 // ── Erreichbare Dienste ─────────────────────────────────

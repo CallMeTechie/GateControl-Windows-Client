@@ -190,6 +190,27 @@
 					</div>
 				</div>
 
+				<!-- Split-Tunneling -->
+				<div class="settings-group">
+					<h3 class="group-title">Split-Tunneling</h3>
+					<div class="toggle-row compact">
+						<div>
+							<span class="toggle-label">Split-Tunneling</span>
+							<div class="toggle-desc" style="font-size:10px;color:var(--text-3)">Nur bestimmte IPs/Domains durch den VPN-Tunnel</div>
+						</div>
+						<label class="switch"><input type="checkbox" id="opt-split-tunnel"><span class="slider"></span></label>
+					</div>
+					<div id="split-routes-section" style="display:none">
+						<div class="field">
+							<label class="field-label" for="opt-split-routes">IPs, Subnetze oder Domains (eine pro Zeile)</label>
+							<textarea class="field-input mono" id="opt-split-routes" rows="4" placeholder="10.0.0.0/8&#10;192.168.1.0/24&#10;intranet.example.com" style="resize:vertical;font-size:11px"></textarea>
+						</div>
+						<div style="font-size:10px;color:var(--text-3);margin-top:4px">
+							Beispiele: <code>10.0.0.0/8</code>, <code>192.168.1.100</code>, <code>internal.company.com</code>
+						</div>
+					</div>
+				</div>
+
 				<!-- App Settings -->
 				<div class="settings-group">
 					<h3 class="group-title">Anwendung</h3>

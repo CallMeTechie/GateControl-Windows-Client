@@ -213,6 +213,23 @@ class ApiClient {
 			return null;
 		}
 	}
+
+	/**
+	 * Peer-Info vom Server abrufen (inkl. Ablaufdatum)
+	 */
+	async getPeerInfo() {
+		if (!this.client || !this.peerId) return null;
+
+		try {
+			const res = await this.client.get('/api/v1/client/peer-info', {
+				params: { peerId: this.peerId },
+			});
+			return res.data?.peer || null;
+		} catch (err) {
+			this.log.debug('Peer-Info fehlgeschlagen:', err.message);
+			return null;
+		}
+	}
 }
 
 module.exports = ApiClient;
