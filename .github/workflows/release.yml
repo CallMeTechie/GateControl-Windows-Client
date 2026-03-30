@@ -13,31 +13,52 @@ env:
 jobs:
   release:
     runs-on: windows-latest
+    # Skip version-bump commits to prevent infinite loop
+    if: "!startsWith(github.event.head_commit.message, 'chore: bump version')"
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           fetch-tags: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
-      - name: Read version from package.json
-        id: version
+      - name: Determine version bump
+        id: bump
         shell: bash
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          CURRENT=$(node -p "require('./package.json').version")
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+
+          FIRST_LINE=$(echo "$COMMIT_MSG" | head -1)
+          if echo "$FIRST_LINE" | grep -qE "^feat(\(.+\))?:"; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            BUMP="minor"
+          else
+            PATCH=$((PATCH + 1))
+            BUMP="patch"
+          fi
+
+          NEW="${MAJOR}.${MINOR}.${PATCH}"
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          echo "bump=$BUMP" >> "$GITHUB_OUTPUT"
+          echo "tag=v$NEW" >> "$GITHUB_OUTPUT"
+          echo "Version: $CURRENT → $NEW ($BUMP)"
 
       - name: Check if tag already exists
         id: check_tag
         shell: bash
         env:
-          TAG: ${{ steps.version.outputs.tag }}
+          TAG: ${{ steps.bump.outputs.tag }}
         run: |
           if git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
@@ -45,10 +66,69 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Skip if already released
-        if: steps.check_tag.outputs.exists == 'true'
+      - name: Update version in package.json
+        if: steps.check_tag.outputs.exists == 'false'
         shell: bash
-        run: echo "Tag ${{ steps.version.outputs.tag }} already exists — skipping release"
+        env:
+          NEW_VERSION: ${{ steps.bump.outputs.new }}
+        run: npm version "$NEW_VERSION" --no-git-tag-version
+
+      - name: Update CHANGELOG.md
+        if: steps.check_tag.outputs.exists == 'false'
+        shell: bash
+        env:
+          NEW_VERSION: ${{ steps.bump.outputs.new }}
+          BUMP_TYPE: ${{ steps.bump.outputs.bump }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          FIRST_LINE=$(echo "$COMMIT_MSG" | head -1)
+          DATE=$(date +%Y-%m-%d)
+
+          if echo "$FIRST_LINE" | grep -qE "^feat"; then
+            SECTION="Features"
+            ENTRY=$(echo "$FIRST_LINE" | sed 's/^feat[^:]*: //')
+          elif echo "$FIRST_LINE" | grep -qE "^fix"; then
+            SECTION="Fixes"
+            ENTRY=$(echo "$FIRST_LINE" | sed 's/^fix[^:]*: //')
+          elif echo "$FIRST_LINE" | grep -qE "^docs"; then
+            SECTION="Dokumentation"
+            ENTRY=$(echo "$FIRST_LINE" | sed 's/^docs[^:]*: //')
+          else
+            SECTION="Änderungen"
+            ENTRY=$(echo "$FIRST_LINE" | sed 's/^[a-z]*[^:]*: //')
+          fi
+
+          NEW_BLOCK="## [$NEW_VERSION] — $DATE
+
+          ### $SECTION
+          - $ENTRY"
+
+          # Remove leading whitespace from heredoc
+          NEW_BLOCK=$(echo "$NEW_BLOCK" | sed 's/^          //')
+
+          if [ -f CHANGELOG.md ]; then
+            TEMP=$(mktemp)
+            awk -v block="$NEW_BLOCK" '
+              /^# Changelog/ { print; print ""; print block; print ""; print "---"; next }
+              { print }
+            ' CHANGELOG.md > "$TEMP"
+            mv "$TEMP" CHANGELOG.md
+          fi
+
+      - name: Commit version bump
+        if: steps.check_tag.outputs.exists == 'false'
+        shell: bash
+        env:
+          TAG: ${{ steps.bump.outputs.tag }}
+          NEW_VERSION: ${{ steps.bump.outputs.new }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add package.json package-lock.json CHANGELOG.md 2>/dev/null || true
+          git add package.json CHANGELOG.md
+          git commit -m "chore: bump version to $NEW_VERSION"
+          git tag "$TAG"
+          git push origin master --tags
 
       - run: npm ci
         if: steps.check_tag.outputs.exists == 'false'
@@ -65,23 +145,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create tag
-        if: steps.check_tag.outputs.exists == 'false'
-        shell: bash
-        env:
-          TAG: ${{ steps.version.outputs.tag }}
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git tag "$TAG"
-          git push origin "$TAG"
-
       - name: Create GitHub Release
         if: steps.check_tag.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: GateControl ${{ steps.version.outputs.tag }}
+          tag_name: ${{ steps.bump.outputs.tag }}
+          name: GateControl ${{ steps.bump.outputs.tag }}
           generate_release_notes: true
           files: |
             dist/*.exe

@@ -1,5 +1,5 @@
 /**
- * GateControl – Auto-Update Service
+ * GateControl – Auto-Update Service (v2)
  *
  * Prüft den GateControl-Server auf neue Versionen,
  * lädt Updates im Hintergrund herunter und bietet
