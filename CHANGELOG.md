@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.4] — 2026-03-30
+
+### Fixes
+- send peerId and dynamic version on register to prevent duplicate peers
+
+---
+
 ## [1.5.3] — 2026-03-30
 
 ### Fixes
