@@ -232,10 +232,9 @@ function createWindow() {
 	mainWindow = new BrowserWindow({
 		width: 590,
 		height: 720,
-		minWidth: 590,
 		minHeight: 600,
-		maxWidth: 590,
-		resizable: true,
+		useContentSize: true,
+		resizable: false,
 		frame: false,
 		transparent: false,
 		backgroundColor: store.get('app.theme', 'dark') === 'light' ? '#F8F9FB' : '#0F1117',
