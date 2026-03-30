@@ -16,33 +16,8 @@ const fs = require('fs').promises;
 
 const execFileAsync = promisify(execFile);
 
-// Input validation
-const IPV4_RE = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
-const CIDR_RE = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}$/;
-const PORT_RE = /^\d{1,5}$/;
-const RULE_NAME_RE = /^[a-zA-Z0-9_]+$/;
+const { validateIp, validateCidr, validatePort, IPV4_RE } = require('./validation');
 
-function validateIp(val) {
-	if (!IPV4_RE.test(val)) throw new Error(`Ungültige IP: ${val}`);
-	return val;
-}
-
-function validateCidr(val) {
-	if (!CIDR_RE.test(val)) throw new Error(`Ungültige CIDR: ${val}`);
-	return val;
-}
-
-function validatePort(val) {
-	if (!PORT_RE.test(String(val))) throw new Error(`Ungültiger Port: ${val}`);
-	return String(val);
-}
-
-function validateRuleName(val) {
-	if (!RULE_NAME_RE.test(val)) throw new Error(`Ungültiger Regelname: ${val}`);
-	return val;
-}
-
-// Safe netsh execution via execFile (no shell interpolation)
 function netsh(...args) {
 	return execFileAsync('netsh', args);
 }
@@ -227,11 +202,9 @@ class KillSwitch {
 			`${this.rulePrefix}_Allow_LAN_192_168_0_0_16`,
 		];
 
-		for (const name of ruleNames) {
-			try {
-				await netsh('advfirewall', 'firewall', 'delete', 'rule', `name=${name}`);
-			} catch { /* Regel existiert nicht */ }
-		}
+		await Promise.all(ruleNames.map(name =>
+			netsh('advfirewall', 'firewall', 'delete', 'rule', `name=${name}`).catch(() => {})
+		));
 	}
 
 	/**

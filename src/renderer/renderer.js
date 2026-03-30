@@ -463,10 +463,13 @@ function updateBandwidthGraph(rxSpeed, txSpeed) {
 	const w = canvas.clientWidth;
 	const h = canvas.clientHeight;
 
-	canvas.width = w * dpr;
-	canvas.height = h * dpr;
-	ctx.scale(dpr, dpr);
-
+	const newW = w * dpr;
+	const newH = h * dpr;
+	if (canvas.width !== newW || canvas.height !== newH) {
+		canvas.width = newW;
+		canvas.height = newH;
+	}
+	ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 	ctx.clearRect(0, 0, w, h);
 
 	const allValues = [...bwHistory.rx, ...bwHistory.tx];
@@ -533,16 +536,7 @@ function updateBandwidthGraph(rxSpeed, txSpeed) {
 	ctx.fillText('↑ Upload', w - 78, 24);
 }
 
-// ── Stats Refresh Timer ──────────────────────────────────
-setInterval(async () => {
-	if (state.connected) {
-		const status = await tunnel.getStatus();
-		if (status) {
-			state = { ...state, ...status };
-			updateUI();
-		}
-	}
-}, 5000);
+// Stats werden via IPC tunnel.onState gepusht (kein separater Poll nötig)
 
 // ── Auto-Update UI ──────────────────────────────────────
 function showUpdateBanner(info) {

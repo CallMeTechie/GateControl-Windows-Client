@@ -15,43 +15,11 @@ const { promisify } = require('util');
 
 const execFileAsync = promisify(execFile);
 
-// Shell-safe command execution via cmd.exe (no string interpolation injection)
-function safeExec(command, args = []) {
-  return execFileAsync('cmd.exe', ['/c', command, ...args]);
-}
+const { validateIp, validateCidr, validateInt, validateIfaceName, IPV4_RE } = require('./validation');
 
-// ── Input Validation ───────────────────────────────────────
-const IPV4_RE = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
-const CIDR_RE = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}$/;
-const INT_RE = /^\d+$/;
-const SUBNET_MASK_RE = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
-const IFACE_NAME_RE = /^[a-zA-Z0-9_\- ]+$/;
-
-function validateIp(val) {
-  if (!IPV4_RE.test(val)) throw new Error(`Ungültige IP-Adresse: ${val}`);
-  const parts = val.split('.').map(Number);
-  if (parts.some(p => p < 0 || p > 255)) throw new Error(`IP-Adresse außerhalb des Bereichs: ${val}`);
-  return val;
-}
-
-function validateCidr(val) {
-  if (!CIDR_RE.test(val)) throw new Error(`Ungültige CIDR-Notation: ${val}`);
-  const [ip, prefix] = val.split('/');
-  validateIp(ip);
-  const p = parseInt(prefix, 10);
-  if (p < 0 || p > 32) throw new Error(`Ungültige CIDR-Prefix-Länge: ${val}`);
-  return val;
-}
-
-function validateInt(val) {
-  const s = String(val);
-  if (!INT_RE.test(s)) throw new Error(`Ungültiger Integer: ${val}`);
-  return s;
-}
-
-function validateIfaceName(val) {
-  if (!IFACE_NAME_RE.test(val)) throw new Error(`Ungültiger Interface-Name: ${val}`);
-  return val;
+// Shell-safe netsh execution via execFile (no shell, argument array)
+function netsh(...args) {
+  return execFileAsync('netsh', args);
 }
 
 // ── Adapter State Enum ──────────────────────────────────────
@@ -491,7 +459,7 @@ class WireGuardNative {
     this.log.info(`Konfiguriere Netzwerk: ${ip}/${cidr}`);
 
     try {
-      await safeExec(`netsh interface ip set address "${ifName}" static ${ip} ${mask}`);
+      await netsh('interface', 'ip', 'set', 'address', ifName, 'static', ip, mask);
     } catch (err) {
       this.log.warn(`IP-Konfiguration fehlgeschlagen: ${err.message}`);
     }
@@ -502,9 +470,9 @@ class WireGuardNative {
 
       try {
         if (dnsServers.length > 0) {
-          await safeExec(`netsh interface ip set dns "${ifName}" static ${validateIp(dnsServers[0])}`);
+          await netsh('interface', 'ip', 'set', 'dns', ifName, 'static', validateIp(dnsServers[0]));
           for (let i = 1; i < dnsServers.length; i++) {
-            await safeExec(`netsh interface ip add dns "${ifName}" ${validateIp(dnsServers[i])} index=${i + 1}`);
+            await netsh('interface', 'ip', 'add', 'dns', ifName, validateIp(dnsServers[i]), `index=${i + 1}`);
           }
         }
       } catch (err) {
@@ -537,7 +505,7 @@ class WireGuardNative {
                 '(Get-NetRoute -DestinationPrefix 0.0.0.0/0 | Sort-Object RouteMetric | Select-Object -First 1).InterfaceIndex']);
               const ifIndex = validateInt(ifOut.trim());
               this._endpointRoute = { endpointIP, gateway, ifIndex };
-              await safeExec(`netsh interface ip add route ${endpointIP}/32 interface=${ifIndex} nexthop=${gateway} metric=1`);
+              await netsh('interface', 'ip', 'add', 'route', `${endpointIP}/32`, `interface=${ifIndex}`, `nexthop=${gateway}`, 'metric=1');
               this.log.info(`Endpoint-Route: ${endpointIP} via ${gateway} (if=${ifIndex})`);
             }
           } catch (err) {
@@ -547,7 +515,7 @@ class WireGuardNative {
       }
 
       try {
-        await safeExec(`netsh interface ip add route 0.0.0.0/0 "${ifName}" ${ip} metric=5`);
+        await netsh('interface', 'ip', 'add', 'route', '0.0.0.0/0', ifName, ip, 'metric=5');
       } catch (err) {
         this.log.debug(`Route-Konfiguration: ${err.message}`);
       }
@@ -569,7 +537,7 @@ class WireGuardNative {
         try {
           const routeTarget = entry.includes('/') ? validateCidr(entry) : `${validateIp(entry)}/32`;
 
-          await safeExec(`netsh interface ip add route ${routeTarget} "${ifName}" ${ip} metric=5`);
+          await netsh('interface', 'ip', 'add', 'route', routeTarget, ifName, ip, 'metric=5');
           this._splitRoutes.push(routeTarget);
           this.log.info(`Split-Route: ${routeTarget} → Tunnel`);
         } catch (err) {
@@ -580,7 +548,7 @@ class WireGuardNative {
       // VPN-Subnetz immer routen
       const vpnSubnet = validateIp(parsed.address.split('/')[0]).split('.').slice(0, 3).join('.') + '.0/24';
       try {
-        await safeExec(`netsh interface ip add route ${validateCidr(vpnSubnet)} "${ifName}" ${ip} metric=5`);
+        await netsh('interface', 'ip', 'add', 'route', validateCidr(vpnSubnet), ifName, ip, 'metric=5');
         this._splitRoutes.push(vpnSubnet);
       } catch {}
 
@@ -590,7 +558,7 @@ class WireGuardNative {
         if (epMatch && IPV4_RE.test(epMatch[1])) {
           const endpointIP = validateIp(epMatch[1]);
           try {
-            await safeExec(`netsh interface ip add route ${endpointIP}/32 "${ifName}" ${ip} metric=5`);
+            await netsh('interface', 'ip', 'add', 'route', `${endpointIP}/32`, ifName, ip, 'metric=5');
             this._splitRoutes.push(`${endpointIP}/32`);
           } catch {}
         }
@@ -638,7 +606,7 @@ class WireGuardNative {
       const ifName = validateIfaceName(this.tunnelName);
       for (const route of this._splitRoutes) {
         try {
-          await safeExec(`netsh interface ip delete route ${route} "${ifName}"`);
+          await netsh('interface', 'ip', 'delete', 'route', route, ifName);
         } catch {}
       }
       this.log.info(`${this._splitRoutes.length} Split-Routen entfernt`);
@@ -652,7 +620,7 @@ class WireGuardNative {
     if (this._endpointRoute) {
       try {
         const { endpointIP, ifIndex } = this._endpointRoute;
-        await safeExec(`netsh interface ip delete route ${validateIp(endpointIP)}/32 interface=${validateInt(ifIndex)}`);
+        await netsh('interface', 'ip', 'delete', 'route', `${validateIp(endpointIP)}/32`, `interface=${validateInt(ifIndex)}`);
         this.log.info(`Endpoint-Route entfernt: ${endpointIP}`);
       } catch { /* Route ggf. schon weg */ }
       this._endpointRoute = null;
@@ -661,7 +629,7 @@ class WireGuardNative {
     // Netzwerk-Konfiguration aufräumen
     try {
       const ifName = validateIfaceName(this.tunnelName);
-      await safeExec(`netsh interface ip delete address "${ifName}" addr=0.0.0.0 gateway=all`);
+      await netsh('interface', 'ip', 'delete', 'address', ifName, 'addr=0.0.0.0', 'gateway=all');
     } catch { /* Interface ggf. schon weg */ }
 
     this.log.info('Tunnel getrennt');

@@ -236,11 +236,12 @@ function updateTray(state) {
 
 // ── Fenster ──────────────────────────────────────────────────
 function createWindow() {
+	const dpi = screen.getPrimaryDisplay().scaleFactor;
 	mainWindow = new BrowserWindow({
-		width: Math.round(590 / screen.getPrimaryDisplay().scaleFactor),
-		maxWidth: Math.round(590 / screen.getPrimaryDisplay().scaleFactor),
-		height: Math.round(store.get('app.windowHeight', 1280) / screen.getPrimaryDisplay().scaleFactor),
-		minHeight: Math.round(500 / screen.getPrimaryDisplay().scaleFactor),
+		width: Math.round(590 / dpi),
+		maxWidth: Math.round(590 / dpi),
+		height: Math.round(store.get('app.windowHeight', 1280) / dpi),
+		minHeight: Math.round(500 / dpi),
 		resizable: true,
 		frame: false,
 		transparent: true,
@@ -265,8 +266,7 @@ function createWindow() {
 	
 	mainWindow.on('resize', () => {
 		const [, height] = mainWindow.getSize();
-		const physicalHeight = Math.round(height * screen.getPrimaryDisplay().scaleFactor);
-		store.set('app.windowHeight', physicalHeight);
+		store.set('app.windowHeight', Math.round(height * dpi));
 	});
 
 	mainWindow.on('close', (e) => {
