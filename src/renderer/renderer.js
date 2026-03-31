@@ -102,6 +102,10 @@ tunnel.getStatus().then(s => {
 	if (s) {
 		state = { ...state, ...s };
 		updateUI();
+		if (s.connected) {
+			loadServices();
+			loadTraffic();
+		}
 	}
 });
 

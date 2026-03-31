@@ -28,39 +28,24 @@ if (!gotLock) {
 }
 
 // ── Konfiguration ────────────────────────────────────────────
-// Maschinenspezifischer Encryption Key mit Migration von altem Key
 const crypto = require('crypto');
 const fsSync = require('fs');
 
-// electron-store speichert Config in %APPDATA%/<app-name>/
-// Wir müssen den Pfad manuell ermitteln da app.getPath() ggf. noch nicht bereit ist
-const userDataPath = app.getPath('userData');
-const configFilePath = path.join(userDataPath, 'gatecontrol-config.json');
-const keyFilePath = path.join(userDataPath, 'gatecontrol-keyfile.json');
+// Key-Store: speichert den maschinenspezifischen Encryption Key
+const keyStore = new (require('electron-store'))({ name: 'gatecontrol-keyfile', encryptionKey: 'gc-bootstrap' });
 
-// Prüfe ob ein machineKey existiert
-let machineKey = null;
-try {
-	if (fsSync.existsSync(keyFilePath)) {
-		const keyData = JSON.parse(fsSync.readFileSync(keyFilePath, 'utf-8'));
-		machineKey = keyData.machineKey || null;
-	}
-} catch {}
-
-if (!machineKey) {
-	// Erster Start mit neuem Key-System: alte Config löschen (war mit anderem Key verschlüsselt)
-	machineKey = crypto.randomBytes(32).toString('hex');
+if (!keyStore.get('machineKey')) {
+	// Erstmaliger Start mit neuem Key-System
+	const newKey = crypto.randomBytes(32).toString('hex');
+	// Alte Config mit festem Key löschen (nicht mehr entschlüsselbar)
 	try {
-		if (fsSync.existsSync(configFilePath)) {
-			fsSync.unlinkSync(configFilePath);
-			log.info('Alte Config-Datei entfernt (Key-Migration)');
+		const configPath = path.join(app.getPath('userData'), 'gatecontrol-config.json');
+		if (fsSync.existsSync(configPath)) {
+			fsSync.unlinkSync(configPath);
+			log.info('Alte Config-Datei entfernt (einmalige Key-Migration)');
 		}
 	} catch {}
-}
-
-const keyStore = new (require('electron-store'))({ name: 'gatecontrol-keyfile', encryptionKey: 'gc-bootstrap' });
-if (!keyStore.get('machineKey')) {
-	keyStore.set('machineKey', machineKey);
+	keyStore.set('machineKey', newKey);
 }
 
 const store = new Store({
