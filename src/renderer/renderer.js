@@ -3,7 +3,10 @@
  * UI-Logik und State Management
  */
 
-const { tunnel, server, config, killSwitch, autostart, logs, update, services, traffic, dns, shell, peer, getVersion, window: win } = window.gatecontrol;
+const { tunnel, server, config, killSwitch, autostart, logs, update, services, traffic, dns, shell, peer, permissions, getVersion, window: win } = window.gatecontrol;
+
+// Aktive Berechtigungen (werden beim Connect geladen)
+let activePermissions = { services: true, traffic: true, dns: true };
 
 // Version anzeigen
 getVersion().then(v => {
@@ -98,13 +101,13 @@ tunnel.onState((newState) => {
 });
 
 // Initial Status laden
-tunnel.getStatus().then(s => {
+tunnel.getStatus().then(async (s) => {
 	if (s) {
 		state = { ...state, ...s };
 		updateUI();
 		if (s.connected) {
-			loadServices();
-			loadTraffic();
+			await loadPermissions();
+			applyPermissions();
 		}
 	}
 });
@@ -153,8 +156,8 @@ function updateUI() {
 	el.statRx.textContent = formatBytes(rxBytes || 0);
 	el.statTx.textContent = formatBytes(txBytes || 0);
 
-	// Speed
-	if (connected && (rxSpeed || txSpeed)) {
+	// Speed + Graph (nur wenn traffic-Berechtigung)
+	if (connected && activePermissions.traffic && (rxSpeed || txSpeed)) {
 		el.statRxSpeed.textContent = formatSpeed(rxSpeed || 0);
 		el.statTxSpeed.textContent = formatSpeed(txSpeed || 0);
 		updateBandwidthGraph(rxSpeed || 0, txSpeed || 0);
@@ -165,7 +168,7 @@ function updateUI() {
 
 	// Bandwidth graph visibility
 	const bwSection = $('#bandwidth-section');
-	if (bwSection) bwSection.style.display = connected ? '' : 'none';
+	if (bwSection) bwSection.style.display = (connected && activePermissions.traffic) ? '' : 'none';
 
 	// Kill-Switch
 	el.killswitchToggle.checked = ks || false;
@@ -605,6 +608,44 @@ peer.onExpiry((info) => {
 update.check().then((info) => { if (info) showUpdateBanner(info); });
 
 // ── Erreichbare Dienste ─────────────────────────────────
+async function loadPermissions() {
+	try {
+		const perms = await permissions.get();
+		if (perms) {
+			activePermissions = { ...perms, _loaded: true };
+		}
+	} catch {}
+}
+
+function applyPermissions() {
+	const servicesSection = $('#services-section');
+	const trafficSection = $('#traffic-usage');
+	const bandwidthSection = $('#bandwidth-section');
+	const dnsSection = document.querySelector('.dns-section');
+
+	// Services
+	if (activePermissions.services) {
+		loadServices();
+	} else if (servicesSection) {
+		servicesSection.style.display = 'none';
+	}
+
+	// Traffic + Bandbreiten-Graph
+	if (activePermissions.traffic) {
+		loadTraffic();
+	} else {
+		if (trafficSection) trafficSection.style.display = 'none';
+		if (bandwidthSection) bandwidthSection.style.display = 'none';
+	}
+
+	// DNS-Leak-Test
+	if (!activePermissions.dns && dnsSection) {
+		dnsSection.style.display = 'none';
+	} else if (dnsSection) {
+		dnsSection.style.display = '';
+	}
+}
+
 async function loadServices() {
 	const list = await services.list();
 	const section = $('#services-section');
@@ -646,11 +687,15 @@ async function loadServices() {
 	});
 }
 
-// Dienste und Traffic laden wenn verbunden
-tunnel.onState((s) => {
+// Permissions, Dienste und Traffic laden wenn verbunden
+tunnel.onState(async (s) => {
 	if (s.connected || s.status === 'connected') {
-		loadServices();
-		loadTraffic();
+		if (!activePermissions._loaded) {
+			await loadPermissions();
+			applyPermissions();
+		}
+	} else {
+		activePermissions._loaded = false;
 	}
 });
 

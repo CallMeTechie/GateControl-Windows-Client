@@ -568,6 +568,7 @@ function registerIpcHandlers() {
 	ipcMain.handle('update:install', () => installUpdate());
 
 	// Services & DNS-Leak-Test
+	ipcMain.handle('permissions:get', () => apiClient?.getPermissions());
 	ipcMain.handle('services:list', () => apiClient?.getServices());
 	ipcMain.handle('traffic:stats', () => apiClient?.getTraffic());
 	ipcMain.handle('dns:leak-test', async () => {

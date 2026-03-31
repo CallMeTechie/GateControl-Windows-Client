@@ -65,6 +65,11 @@ contextBridge.exposeInMainWorld('gatecontrol', {
 		},
 	},
 
+	// ── Permissions ──────────────────────────────────────
+	permissions: {
+		get: () => ipcRenderer.invoke('permissions:get'),
+	},
+
 	// ── Traffic ──────────────────────────────────────────
 	traffic: {
 		stats: () => ipcRenderer.invoke('traffic:stats'),

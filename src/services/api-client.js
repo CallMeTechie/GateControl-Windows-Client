@@ -217,6 +217,21 @@ class ApiClient {
 	}
 
 	/**
+	 * Berechtigungen des Tokens abfragen
+	 */
+	async getPermissions() {
+		if (!this.client) return null;
+
+		try {
+			const res = await this.client.get('/api/v1/client/permissions');
+			return res.data?.permissions || null;
+		} catch (err) {
+			this.log.debug('Permissions-Abfrage fehlgeschlagen:', err.message);
+			return null;
+		}
+	}
+
+	/**
 	 * Traffic-Verbrauch vom Server abrufen
 	 */
 	async getTraffic() {
