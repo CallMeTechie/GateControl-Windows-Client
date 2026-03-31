@@ -280,8 +280,13 @@ function createWindow() {
 		}
 	});
 	
+	const fixedWidth = Math.round(590 / dpi);
 	mainWindow.on('resize', () => {
-		const [, height] = mainWindow.getSize();
+		const [width, height] = mainWindow.getSize();
+		// Breite erzwingen (transparent: true ignoriert maxWidth auf Windows)
+		if (width !== fixedWidth) {
+			mainWindow.setSize(fixedWidth, height);
+		}
 		store.set('app.windowHeight', Math.round(height * dpi));
 	});
 
