@@ -10,6 +10,7 @@
 
 const axios = require('axios');
 const os = require('os');
+const { getMachineFingerprint } = require('./machine-id');
 
 class ApiClient {
 	constructor(serverUrl, apiKey, log, peerId = null) {
@@ -54,6 +55,7 @@ class ApiClient {
 				'X-API-Token': this.apiKey,
 				'X-Client-Version': require('../../package.json').version,
 				'X-Client-Platform': 'windows',
+				'X-Machine-Fingerprint': getMachineFingerprint(),
 			},
 		});
 		
