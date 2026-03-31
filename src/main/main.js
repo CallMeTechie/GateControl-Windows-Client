@@ -261,7 +261,9 @@ function createWindow() {
 		transparent: true,
 		titleBarStyle: 'hidden',
 		show: false,
-		icon: getIcon('disconnected'),
+		icon: app.isPackaged
+			? path.join(process.resourcesPath, 'resources', 'icons', 'app-icon.png')
+			: path.join(__dirname, '..', '..', 'build', 'icon.ico'),
 		webPreferences: {
 			preload: path.join(__dirname, 'preload.js'),
 			nodeIntegration: false,
