@@ -154,13 +154,12 @@ jobs:
         if: steps.check_tag.outputs.exists == 'false'
         shell: bash
         run: |
-          npx electron-builder --win portable --config.win.requestedExecutionLevel=asInvoker
-          PORTABLE_EXE=$(ls dist/GateControl*.exe 2>/dev/null | grep -v Setup | head -1)
-          if [ -n "$PORTABLE_EXE" ]; then
-            curl -sL https://github.com/electron/rcedit/releases/download/v2.0.0/rcedit-x64.exe -o rcedit.exe
-            ./rcedit.exe "$PORTABLE_EXE" --set-requested-execution-level requireAdministrator
-            echo "Patched portable with requireAdministrator: $PORTABLE_EXE"
-          fi
+          npx electron-builder --win dir --config.win.requestedExecutionLevel=asInvoker
+          curl -sL https://github.com/electron/rcedit/releases/download/v2.0.0/rcedit-x64.exe -o rcedit.exe
+          ./rcedit.exe "dist/win-unpacked/GateControl Community Client.exe" --set-requested-execution-level requireAdministrator
+          echo "Patched with requireAdministrator"
+          cd dist && powershell Compress-Archive -Path "win-unpacked/*" -DestinationPath "GateControl-Community-Client-Portable.zip" -Force
+          echo "Portable ZIP created"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
