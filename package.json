@@ -12,7 +12,7 @@
     "build:portable": "electron-builder --win portable",
     "build:installer": "electron-builder --win nsis",
     "postinstall": "electron-builder install-app-deps",
-    "test": "echo 'No tests configured (Electron-only codebase)'"
+    "test": "node -e \"const fs=require('fs'),path=require('path'),{execFileSync}=require('child_process');let ok=0,fail=0;const check=d=>{for(const f of fs.readdirSync(d,{withFileTypes:true})){const p=path.join(d,f.name);if(f.isDirectory()&&f.name!=='node_modules')check(p);else if(f.name.endsWith('.js')){try{execFileSync(process.execPath,['--check',p]);ok++}catch(e){console.error('FAIL:',p);fail++}}}};check('src');console.log(ok+' files OK'+(fail?' '+fail+' FAILED':''));if(fail)process.exit(1)\""
   },
   "dependencies": {
     "@gatecontrol/client-core": "file:../gatecontrol-client-core"
