@@ -152,7 +152,14 @@ jobs:
 
       - name: Build portable
         if: steps.check_tag.outputs.exists == 'false'
-        run: npx electron-builder --win portable --config.win.requestedExecutionLevel=asInvoker
+        shell: bash
+        run: |
+          npx electron-builder --win portable --config.win.requestedExecutionLevel=asInvoker
+          PORTABLE_EXE=$(ls dist/GateControl*.exe 2>/dev/null | grep -v Setup | head -1)
+          if [ -n "$PORTABLE_EXE" ]; then
+            npx rcedit "$PORTABLE_EXE" --set-requested-execution-level requireAdministrator
+            echo "Patched portable with requireAdministrator: $PORTABLE_EXE"
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
