@@ -1,6 +1,6 @@
 {
   "name": "gatecontrol-client",
-  "version": "1.9.11",
+  "version": "1.9.12",
   "description": "GateControl WireGuard Client für Windows",
   "main": "src/main/main.js",
   "author": "GateControl",
