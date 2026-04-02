@@ -155,11 +155,10 @@ jobs:
         shell: bash
         run: |
           npx electron-builder --win portable --config.win.requestedExecutionLevel=asInvoker
-          npm install --no-save rcedit
+          npm install --no-save @electron/rcedit
           PORTABLE_EXE=$(ls dist/GateControl*.exe 2>/dev/null | grep -v Setup | head -1)
           if [ -n "$PORTABLE_EXE" ]; then
-            npx rcedit "$PORTABLE_EXE" --set-requested-execution-level requireAdministrator
-            echo "Patched portable with requireAdministrator: $PORTABLE_EXE"
+            node -e "require('@electron/rcedit')('$PORTABLE_EXE', {'requested-execution-level': 'requireAdministrator'}).then(() => console.log('Patched: $PORTABLE_EXE')).catch(e => { console.error(e); process.exit(1) })"
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
