@@ -155,6 +155,7 @@ jobs:
         shell: bash
         run: |
           npx electron-builder --win portable --config.win.requestedExecutionLevel=asInvoker
+          npm install --no-save rcedit
           PORTABLE_EXE=$(ls dist/GateControl*.exe 2>/dev/null | grep -v Setup | head -1)
           if [ -n "$PORTABLE_EXE" ]; then
             npx rcedit "$PORTABLE_EXE" --set-requested-execution-level requireAdministrator
