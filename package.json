@@ -23,7 +23,7 @@
   },
   "build": {
     "appId": "com.gatecontrol.client",
-    "productName": "GateControl",
+    "productName": "GateControl Community Client",
     "copyright": "Copyright © 2026 GateControl",
     "directories": {
       "output": "dist",

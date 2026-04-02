@@ -161,7 +161,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.bump.outputs.tag }}
-          name: GateControl ${{ steps.bump.outputs.tag }}
+          name: GateControl Community Client ${{ steps.bump.outputs.tag }}
           generate_release_notes: true
           files: |
             dist/*.exe
