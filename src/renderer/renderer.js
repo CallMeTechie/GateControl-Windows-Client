@@ -3,7 +3,8 @@
  * UI-Logik und State Management
  */
 
-const { tunnel, server, config, killSwitch, autostart, logs, update, services, traffic, dns, shell, peer, permissions, getVersion, window: win } = window.gatecontrol;
+const { tunnel, server, config, killSwitch, autostart, logs, update, services, traffic, dns, shell, peer, permissions, getVersion, window: win, locale } = window.gatecontrol;
+const { t } = window.gatecontrol.i18n;
 
 // Aktive Berechtigungen (werden beim Connect geladen)
 let activePermissions = { services: true, traffic: true, dns: true };
@@ -90,6 +91,79 @@ function navigateTo(page) {
 // Navigation aus dem Main Process
 window.gatecontrol.onNavigate((page) => navigateTo(page));
 
+// ── i18n / DOM Update ────────────────────────────────────
+function updateDOM() {
+	document.querySelectorAll('[data-i18n]').forEach(el => {
+		el.textContent = t(el.dataset.i18n);
+	});
+	document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+		el.placeholder = t(el.dataset.i18nPlaceholder);
+	});
+	document.querySelectorAll('[data-i18n-title]').forEach(el => {
+		el.title = t(el.dataset.i18nTitle);
+	});
+	document.documentElement.lang = window.gatecontrol.i18n.getLocale();
+	updateMixedContentElements();
+}
+
+function updateMixedContentElements() {
+	// DNS test button (SVG + text)
+	const dnsTestBtn = document.querySelector('#dns-test-btn');
+	if (dnsTestBtn && !dnsTestBtn.disabled) {
+		const svg = dnsTestBtn.querySelector('svg');
+		if (svg) {
+			const svgClone = svg.cloneNode(true);
+			dnsTestBtn.textContent = '';
+			dnsTestBtn.appendChild(svgClone);
+			dnsTestBtn.appendChild(document.createTextNode('\n' + t('dns.testBtn')));
+		}
+	}
+
+	// Import file button
+	const importFileBtn = document.querySelector('#btn-import-file');
+	if (importFileBtn) {
+		const svg = importFileBtn.querySelector('svg');
+		if (svg) {
+			const svgClone = svg.cloneNode(true);
+			importFileBtn.textContent = '';
+			importFileBtn.appendChild(svgClone);
+			importFileBtn.appendChild(document.createTextNode('\n' + t('action.importFile')));
+		}
+	}
+
+	// Import QR button
+	const importQrBtn = document.querySelector('#btn-import-qr');
+	if (importQrBtn) {
+		const svg = importQrBtn.querySelector('svg');
+		if (svg) {
+			const svgClone = svg.cloneNode(true);
+			importQrBtn.textContent = '';
+			importQrBtn.appendChild(svgClone);
+			importQrBtn.appendChild(document.createTextNode('\n' + t('action.scanQr')));
+		}
+	}
+}
+
+// Locale Init
+locale.get().then(loc => {
+	const selectEl = document.querySelector('#locale-select');
+	if (selectEl) selectEl.value = loc;
+	updateDOM();
+});
+
+locale.onChange((loc) => {
+	const selectEl = document.querySelector('#locale-select');
+	if (selectEl) selectEl.value = loc;
+	updateDOM();
+});
+
+const localeSelect = document.querySelector('#locale-select');
+if (localeSelect) {
+	localeSelect.addEventListener('change', (e) => {
+		locale.set(e.target.value);
+	});
+}
+
 // ── Titlebar ─────────────────────────────────────────────
 $('#btn-minimize').addEventListener('click', () => win.minimize());
 $('#btn-close').addEventListener('click', () => win.close());
@@ -124,18 +198,18 @@ function updateUI() {
 		el.ringFill.classList.add('connected');
 		el.statusIcon.classList.add('connected');
 		el.statusIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
-		el.statusLabel.textContent = 'Verbunden';
+		el.statusLabel.textContent = t('status.connected');
 		el.statusLabel.style.color = 'var(--accent)';
-		
+
 		el.connectBtn.classList.add('connected');
 		el.connectBtn.classList.remove('connecting');
-		el.connectBtn.querySelector('.connect-btn-text').textContent = 'Trennen';
+		el.connectBtn.querySelector('.connect-btn-text').textContent = t('action.disconnect');
 		
 	} else if (status === 'connecting' || status === 'reconnecting') {
 		el.ringFill.classList.add('connecting');
 		el.statusIcon.classList.add('connecting');
 		el.statusIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>`;
-		el.statusLabel.textContent = status === 'reconnecting' ? 'Reconnecting...' : 'Verbinde...';
+		el.statusLabel.textContent = status === 'reconnecting' ? t('status.reconnecting') : t('status.connecting');
 		el.statusLabel.style.color = 'var(--warn)';
 		
 		el.connectBtn.classList.remove('connected');
@@ -143,11 +217,11 @@ function updateUI() {
 		
 	} else {
 		el.statusIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64A9 9 0 015.64 18.36M5.64 5.64A9 9 0 0118.36 18.36"/></svg>`;
-		el.statusLabel.textContent = 'Getrennt';
+		el.statusLabel.textContent = t('status.disconnected');
 		el.statusLabel.style.color = 'var(--text-3)';
-		
+
 		el.connectBtn.classList.remove('connected', 'connecting');
-		el.connectBtn.querySelector('.connect-btn-text').textContent = 'Verbinden';
+		el.connectBtn.querySelector('.connect-btn-text').textContent = t('action.connect');
 	}
 	
 	// Stats
@@ -215,22 +289,22 @@ $('#toggle-api-key').addEventListener('click', () => {
 
 // Server testen
 $('#btn-test-server').addEventListener('click', async () => {
-	showServerStatus('Teste Verbindung...', 'info');
-	
+	showServerStatus(t('server.testInProgress'), 'info');
+
 	// Temporär URL setzen
 	const url = el.serverUrl.value.trim();
 	const key = el.apiKey.value.trim();
-	
+
 	if (!url || !key) {
-		showServerStatus('URL und API-Key erforderlich', 'error');
+		showServerStatus(t('server.urlAndKeyRequired'), 'error');
 		return;
 	}
-	
+
 	const result = await server.test({ url, apiKey: key });
 	if (result.success) {
-		showServerStatus('Verbindung erfolgreich!', 'success');
+		showServerStatus(t('server.testSuccess'), 'success');
 	} else {
-		showServerStatus(`Fehler: ${result.error}`, 'error');
+		showServerStatus(t('server.testError', { error: result.error }), 'error');
 	}
 });
 
@@ -238,19 +312,19 @@ $('#btn-test-server').addEventListener('click', async () => {
 $('#btn-save-server').addEventListener('click', async () => {
 	const url = el.serverUrl.value.trim();
 	const key = el.apiKey.value.trim();
-	
+
 	if (!url || !key) {
-		showServerStatus('URL und API-Key erforderlich', 'error');
+		showServerStatus(t('server.urlAndKeyRequired'), 'error');
 		return;
 	}
-	
-	showServerStatus('Registriere Client...', 'info');
-	
+
+	showServerStatus(t('server.registering'), 'info');
+
 	const result = await server.setup({ url, apiKey: key });
 	if (result.success) {
-		showServerStatus(`Registriert! Peer-ID: ${result.peerId}`, 'success');
+		showServerStatus(t('server.registered', { peerId: result.peerId }), 'success');
 	} else {
-		showServerStatus(`Fehler: ${result.error}`, 'error');
+		showServerStatus(t('server.testError', { error: result.error }), 'error');
 	}
 });
 
@@ -268,9 +342,9 @@ function showServerStatus(message, type) {
 $('#btn-import-file').addEventListener('click', async () => {
 	const result = await config.importFile();
 	if (result.success) {
-		showServerStatus(`Config importiert: ${result.path}`, 'success');
+		showServerStatus(t('server.configImported', { path: result.path }), 'success');
 	} else if (result.error) {
-		showServerStatus(`Import-Fehler: ${result.error}`, 'error');
+		showServerStatus(t('server.importError', { error: result.error }), 'error');
 	}
 });
 
@@ -294,11 +368,11 @@ $('#btn-import-qr').addEventListener('click', async () => {
 		setTimeout(() => {
 			if (qrStream) {
 				stopQRScan();
-				showServerStatus('QR-Scan Timeout — kein Code erkannt.', 'error');
+				showServerStatus(t('server.qrTimeout'), 'error');
 			}
 		}, 60000);
 	} catch (err) {
-		showServerStatus(`Kamera-Fehler: ${err.message}`, 'error');
+		showServerStatus(t('server.cameraError', { error: err.message }), 'error');
 	}
 });
 
@@ -306,7 +380,7 @@ $('#btn-qr-cancel').addEventListener('click', stopQRScan);
 
 function stopQRScan() {
 	if (qrStream) {
-		qrStream.getTracks().forEach(t => t.stop());
+		qrStream.getTracks().forEach(track => track.stop());
 		qrStream = null;
 	}
 	$('#qr-preview').hidden = true;
@@ -334,7 +408,7 @@ async function scanQR() {
 			
 			if (result.success) {
 				stopQRScan();
-				showServerStatus('QR-Code erkannt! Config importiert.', 'success');
+				showServerStatus(t('server.qrSuccess'), 'success');
 				return;
 			}
 		}
@@ -388,8 +462,8 @@ el.optSplitTunnel.addEventListener('change', async (e) => {
 	// Wenn verbunden: Reconnect anbieten
 	if (state.connected) {
 		showSplitStatus(e.target.checked
-			? 'Split-Tunneling wird nach Neuverbindung aktiv.'
-			: 'Full-Tunnel wird nach Neuverbindung aktiv.', 'info');
+			? t('split.activateOnReconnect')
+			: t('split.fullTunnelOnReconnect'), 'info');
 		await tunnel.disconnect();
 		await tunnel.connect();
 	}
@@ -400,19 +474,19 @@ $('#btn-save-split').addEventListener('click', async () => {
 	config.set('tunnel.splitRoutes', routes);
 
 	if (!routes) {
-		showSplitStatus('Keine Routen eingetragen.', 'warn');
+		showSplitStatus(t('split.noRoutes'), 'warn');
 		return;
 	}
 
 	const count = routes.split('\n').filter(l => l.trim()).length;
-	showSplitStatus(`${count} Route(n) gespeichert. Verbindung wird neu aufgebaut...`, 'info');
+	showSplitStatus(t('split.routesSaved', { count }), 'info');
 
 	// Reconnect wenn verbunden
 	if (state.connected) {
 		await tunnel.disconnect();
 		await tunnel.connect();
 	} else {
-		showSplitStatus(`${count} Route(n) gespeichert. Wird beim nächsten Verbinden aktiv.`, 'info');
+		showSplitStatus(t('split.routesSavedPending', { count }), 'info');
 	}
 });
 
@@ -428,9 +502,9 @@ function showSplitStatus(msg, type) {
 
 // ── Logs ─────────────────────────────────────────────────
 async function refreshLogs() {
-	el.logOutput.textContent = 'Lade Logs...';
+	el.logOutput.textContent = t('logs.loading');
 	const logText = await logs.get();
-	el.logOutput.textContent = logText || 'Keine Logs verfügbar';
+	el.logOutput.textContent = logText || t('logs.empty');
 	el.logOutput.scrollTop = el.logOutput.scrollHeight;
 }
 
@@ -557,19 +631,19 @@ function showUpdateBanner(info) {
 	const text = document.createElement('div');
 	text.style.cssText = 'flex:1;font-size:12px;color:var(--text-1)';
 	const strong = document.createElement('strong');
-	strong.textContent = `Update v${info.version}`;
+	strong.textContent = t('update.available', { version: info.version });
 	text.appendChild(strong);
-	text.appendChild(document.createTextNode(' bereit zur Installation'));
+	text.appendChild(document.createTextNode(' ' + t('update.readyToInstall')));
 	banner.appendChild(text);
 
 	const laterBtn = document.createElement('button');
-	laterBtn.textContent = 'Später';
+	laterBtn.textContent = t('update.later');
 	laterBtn.style.cssText = 'padding:6px 12px;font-size:11px;background:transparent;color:var(--text-3);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer';
 	laterBtn.addEventListener('click', () => banner.remove());
 	banner.appendChild(laterBtn);
 
 	const installBtn = document.createElement('button');
-	installBtn.textContent = 'Jetzt neustarten';
+	installBtn.textContent = t('update.install');
 	installBtn.style.cssText = 'padding:6px 12px;font-size:11px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;font-weight:600';
 	installBtn.addEventListener('click', () => update.install());
 	banner.appendChild(installBtn);
@@ -589,13 +663,13 @@ peer.onExpiry((info) => {
 
 	let msg, color;
 	if (info.daysLeft <= 0) {
-		msg = 'Dein VPN-Zugang ist abgelaufen!';
+		msg = t('peer.expired');
 		color = 'var(--error)';
 	} else if (info.daysLeft <= 1) {
-		msg = 'Dein VPN-Zugang läuft heute ab!';
+		msg = t('peer.expiresToday');
 		color = 'var(--error)';
 	} else {
-		msg = `Dein VPN-Zugang läuft in ${info.daysLeft} Tagen ab`;
+		msg = t('peer.expiresInDays', { days: info.daysLeft });
 		color = info.daysLeft <= 3 ? 'var(--warn, #F59E0B)' : 'var(--text-2)';
 	}
 
@@ -710,10 +784,10 @@ async function loadTraffic() {
 	grid.textContent = '';
 
 	const periods = [
-		{ label: '24h', data: data.last24h },
-		{ label: '7 Tage', data: data.last7d },
-		{ label: '30 Tage', data: data.last30d },
-		{ label: 'Gesamt', data: data.total },
+		{ label: t('stats.period24h'), data: data.last24h },
+		{ label: t('stats.period7d'), data: data.last7d },
+		{ label: t('stats.period30d'), data: data.last30d },
+		{ label: t('stats.periodTotal'), data: data.total },
 	];
 
 	for (const p of periods) {
@@ -746,7 +820,7 @@ const dnsResult = $('#dns-result');
 if (dnsBtn) {
 	dnsBtn.addEventListener('click', async () => {
 		dnsBtn.disabled = true;
-		dnsBtn.textContent = 'Teste...';
+		dnsBtn.textContent = t('dns.testing');
 		dnsResult.style.display = 'none';
 
 		try {
@@ -759,32 +833,32 @@ if (dnsBtn) {
 				dnsResult.className = 'dns-result pass';
 				const title = document.createElement('div');
 				title.style.fontWeight = '600';
-				title.textContent = 'Kein DNS-Leak erkannt';
+				title.textContent = t('dns.noLeak');
 				dnsResult.appendChild(title);
 
 				const detail = document.createElement('div');
 				detail.style.marginTop = '4px';
-				detail.textContent = `Dein Traffic läuft über den VPN-Tunnel. DNS: ${(result.dnsServers || []).join(', ')}`;
+				detail.textContent = t('dns.noLeakDetail', { servers: (result.dnsServers || []).join(', ') });
 				dnsResult.appendChild(detail);
 			} else {
 				dnsResult.className = 'dns-result fail';
 				const title = document.createElement('div');
 				title.style.fontWeight = '600';
-				title.textContent = 'DNS-Leak möglich';
+				title.textContent = t('dns.leak');
 				dnsResult.appendChild(title);
 
 				const detail = document.createElement('div');
 				detail.style.marginTop = '4px';
-				detail.textContent = `DNS-Anfragen gehen möglicherweise am VPN vorbei. Aktiviere den Kill-Switch um dies zu unterbinden. DNS: ${(result.dnsServers || []).join(', ')}`;
+				detail.textContent = t('dns.leakDetail', { servers: (result.dnsServers || []).join(', ') });
 				dnsResult.appendChild(detail);
 			}
 		} catch {
 			dnsResult.style.display = '';
 			dnsResult.className = 'dns-result fail';
-			dnsResult.textContent = 'Test fehlgeschlagen — Verbindung prüfen.';
+			dnsResult.textContent = t('dns.testFailed');
 		}
 
 		dnsBtn.disabled = false;
-		dnsBtn.textContent = 'DNS-Leak-Test';
+		updateMixedContentElements();
 	});
 }
