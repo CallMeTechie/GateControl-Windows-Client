@@ -22,10 +22,10 @@
 			<span class="titlebar-version" id="app-version"></span>
 		</div>
 		<div class="titlebar-controls">
-			<button class="tb-btn" id="btn-minimize" title="Minimieren">
+			<button class="tb-btn" id="btn-minimize" data-i18n-title="titlebar.minimize" title="Minimieren">
 				<svg viewBox="0 0 10 10"><path d="M1 5h8" stroke="currentColor" stroke-width="1.2"/></svg>
 			</button>
-			<button class="tb-btn tb-close" id="btn-close" title="In Tray minimieren">
+			<button class="tb-btn tb-close" id="btn-close" data-i18n-title="titlebar.close" title="In Tray minimieren">
 				<svg viewBox="0 0 10 10"><path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" stroke-width="1.2"/></svg>
 			</button>
 		</div>
@@ -37,15 +37,15 @@
 		<nav class="nav" id="nav">
 			<button class="nav-btn active" data-page="status">
 				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-				<span>Status</span>
+				<span data-i18n="nav.status">Status</span>
 			</button>
 			<button class="nav-btn" data-page="settings">
 				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-				<span>Einstellungen</span>
+				<span data-i18n="nav.settings">Einstellungen</span>
 			</button>
 			<button class="nav-btn" data-page="logs">
 				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-				<span>Logs</span>
+				<span data-i18n="nav.logs">Logs</span>
 			</button>
 		</nav>
 
@@ -59,7 +59,7 @@
 					<div class="ring-container" id="ring-container">
 						<svg class="ring" viewBox="0 0 200 200">
 							<circle class="ring-track" cx="100" cy="100" r="88" fill="none" stroke-width="4"/>
-							<circle class="ring-fill" id="ring-fill" cx="100" cy="100" r="88" fill="none" stroke-width="4" 
+							<circle class="ring-fill" id="ring-fill" cx="100" cy="100" r="88" fill="none" stroke-width="4"
 								stroke-dasharray="553" stroke-dashoffset="553"/>
 						</svg>
 						<div class="ring-inner">
@@ -68,14 +68,14 @@
 									<path d="M18.36 6.64A9 9 0 015.64 18.36M5.64 5.64A9 9 0 0118.36 18.36"/>
 								</svg>
 							</div>
-							<div class="status-label" id="status-label">Getrennt</div>
+							<div class="status-label" id="status-label" data-i18n="status.disconnected">Getrennt</div>
 						</div>
 					</div>
 				</div>
 
 				<!-- Connect Button -->
 				<button class="connect-btn" id="connect-btn">
-					<span class="connect-btn-text">Verbinden</span>
+					<span class="connect-btn-text" data-i18n="action.connect">Verbinden</span>
 					<div class="connect-btn-loader" hidden>
 						<div class="spinner"></div>
 					</div>
@@ -84,20 +84,20 @@
 				<!-- Stats Grid -->
 				<div class="stats-grid" id="stats-grid">
 					<div class="stat-card">
-						<div class="stat-label">Endpoint</div>
+						<div class="stat-label" data-i18n="stats.endpoint">Endpoint</div>
 						<div class="stat-value mono" id="stat-endpoint">—</div>
 					</div>
 					<div class="stat-card">
-						<div class="stat-label">Handshake</div>
+						<div class="stat-label" data-i18n="stats.handshake">Handshake</div>
 						<div class="stat-value mono" id="stat-handshake">—</div>
 					</div>
 					<div class="stat-card">
-						<div class="stat-label">↓ Empfangen</div>
+						<div class="stat-label" data-i18n="stats.rx">↓ Empfangen</div>
 						<div class="stat-value mono" id="stat-rx">0 B</div>
 						<div class="stat-speed" id="stat-rx-speed"></div>
 					</div>
 					<div class="stat-card">
-						<div class="stat-label">↑ Gesendet</div>
+						<div class="stat-label" data-i18n="stats.tx">↑ Gesendet</div>
 						<div class="stat-value mono" id="stat-tx">0 B</div>
 						<div class="stat-speed" id="stat-tx-speed"></div>
 					</div>
@@ -112,7 +112,7 @@
 				<div class="traffic-usage" id="traffic-usage" style="display:none">
 					<div class="section-header">
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-						<span class="section-title">Datenverbrauch</span>
+						<span class="section-title" data-i18n="stats.dataUsage">Datenverbrauch</span>
 					</div>
 					<div class="traffic-grid" id="traffic-grid"></div>
 				</div>
@@ -122,8 +122,8 @@
 					<div class="toggle-info">
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
 						<div>
-							<div class="toggle-label">Kill-Switch</div>
-							<div class="toggle-desc">Blockiert Traffic ohne VPN</div>
+							<div class="toggle-label" data-i18n="killswitch.label">Kill-Switch</div>
+							<div class="toggle-desc" data-i18n="killswitch.desc">Blockiert Traffic ohne VPN</div>
 						</div>
 					</div>
 					<label class="switch">
@@ -136,7 +136,7 @@
 				<div class="services-section" id="services-section" style="display:none">
 					<div class="section-header">
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
-						<span class="section-title">Erreichbare Dienste</span>
+						<span class="section-title" data-i18n="services.title">Erreichbare Dienste</span>
 					</div>
 					<div id="services-list" class="services-list"></div>
 				</div>
@@ -153,34 +153,34 @@
 
 			<!-- SETTINGS PAGE -->
 			<section class="page" id="page-settings">
-				<h2 class="page-title">Einstellungen</h2>
+				<h2 class="page-title" data-i18n="settings.title">Einstellungen</h2>
 
 				<!-- Server -->
 				<div class="settings-group">
-					<h3 class="group-title">GateControl Server</h3>
+					<h3 class="group-title" data-i18n="settings.server">GateControl Server</h3>
 					<div class="field">
-						<label class="field-label" for="server-url">Server-URL</label>
+						<label class="field-label" for="server-url" data-i18n="settings.serverUrl">Server-URL</label>
 						<input class="field-input" id="server-url" type="url" placeholder="https://gate.example.com">
 					</div>
 					<div class="field">
-						<label class="field-label" for="api-key">API-Key</label>
+						<label class="field-label" for="api-key" data-i18n="settings.apiKey">API-Key</label>
 						<div class="field-row">
 							<input class="field-input mono" id="api-key" type="password" placeholder="gc_xxxxxxxxxxxxxxxx">
-							<button class="field-btn" id="toggle-api-key" title="Anzeigen">
+							<button class="field-btn" id="toggle-api-key" data-i18n-title="settings.showApiKey" title="Anzeigen">
 								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
 							</button>
 						</div>
 					</div>
 					<div class="field-actions">
-						<button class="btn btn-secondary" id="btn-test-server">Verbindung testen</button>
-						<button class="btn btn-primary" id="btn-save-server">Speichern & Registrieren</button>
+						<button class="btn btn-secondary" id="btn-test-server" data-i18n="action.testConnection">Verbindung testen</button>
+						<button class="btn btn-primary" id="btn-save-server" data-i18n="action.saveAndRegister">Speichern &amp; Registrieren</button>
 					</div>
 					<div class="field-status" id="server-status" hidden></div>
 				</div>
 
 				<!-- Config Import -->
 				<div class="settings-group">
-					<h3 class="group-title">Konfiguration importieren</h3>
+					<h3 class="group-title" data-i18n="settings.importConfig">Konfiguration importieren</h3>
 					<div class="import-actions">
 						<button class="btn btn-outline" id="btn-import-file">
 							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -195,7 +195,7 @@
 					<div class="qr-preview" id="qr-preview" hidden>
 						<video id="qr-video" autoplay playsinline></video>
 						<canvas id="qr-canvas" hidden></canvas>
-						<button class="btn btn-secondary" id="btn-qr-cancel">Abbrechen</button>
+						<button class="btn btn-secondary" id="btn-qr-cancel" data-i18n="action.cancel">Abbrechen</button>
 					</div>
 				</div>
 
@@ -203,29 +203,29 @@
 				<div class="settings-group">
 					<div class="toggle-row compact">
 						<div>
-							<span class="toggle-label">Split-Tunneling</span>
-							<div class="toggle-desc" style="font-size:10px;color:var(--text-3)">Nur bestimmte IPs/Subnetze durch den VPN-Tunnel leiten</div>
+							<span class="toggle-label" data-i18n="settings.splitTunnel">Split-Tunneling</span>
+							<div class="toggle-desc" style="font-size:10px;color:var(--text-3)" data-i18n="settings.splitTunnelDesc">Nur bestimmte IPs/Subnetze durch den VPN-Tunnel leiten</div>
 						</div>
 						<label class="switch"><input type="checkbox" id="opt-split-tunnel"><span class="slider"></span></label>
 					</div>
 					<div id="split-routes-section" style="display:none">
 						<div class="field">
-							<label class="field-label" for="opt-split-routes">IPs und Subnetze (eine pro Zeile)</label>
+							<label class="field-label" for="opt-split-routes" data-i18n="settings.splitRoutesLabel">IPs und Subnetze (eine pro Zeile)</label>
 							<textarea class="field-input mono" id="opt-split-routes" rows="4" placeholder="10.0.0.0/8&#10;192.168.1.0/24&#10;172.16.0.0/12" style="resize:vertical;font-size:11px"></textarea>
 						</div>
 						<div style="font-size:10px;color:var(--text-3);margin-top:4px">
 							Beispiele: <code>10.0.0.0/8</code>, <code>192.168.1.0/24</code>, <code>172.16.5.100</code>
 						</div>
-						<button class="btn btn-secondary" id="btn-save-split" style="margin-top:8px">Speichern</button>
+						<button class="btn btn-secondary" id="btn-save-split" style="margin-top:8px" data-i18n="action.save">Speichern</button>
 						<div id="split-status" style="display:none;font-size:10px;margin-top:6px;padding:6px 8px;border-radius:var(--radius-sm)"></div>
 					</div>
 				</div>
 
 				<!-- App Settings -->
 				<div class="settings-group">
-					<h3 class="group-title">Anwendung</h3>
+					<h3 class="group-title" data-i18n="settings.app">Anwendung</h3>
 					<div class="toggle-row compact">
-						<span class="toggle-label">Design</span>
+						<span class="toggle-label" data-i18n="settings.theme">Design</span>
 						<div class="theme-switch" id="theme-switch">
 							<button class="theme-btn active" data-theme="dark" title="Dark">
 								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
@@ -236,23 +236,30 @@
 						</div>
 					</div>
 					<div class="toggle-row compact">
-						<span class="toggle-label">Mit Windows starten</span>
+						<span class="toggle-label" data-i18n="settings.language">Sprache</span>
+						<select class="field-input" id="locale-select" style="width:auto;padding:4px 8px;font-size:11px">
+							<option value="de">Deutsch</option>
+							<option value="en">English</option>
+						</select>
+					</div>
+					<div class="toggle-row compact">
+						<span class="toggle-label" data-i18n="settings.autostart">Mit Windows starten</span>
 						<label class="switch"><input type="checkbox" id="opt-autostart" checked><span class="slider"></span></label>
 					</div>
 					<div class="toggle-row compact">
-						<span class="toggle-label">Minimiert starten</span>
+						<span class="toggle-label" data-i18n="settings.minimized">Minimiert starten</span>
 						<label class="switch"><input type="checkbox" id="opt-minimized" checked><span class="slider"></span></label>
 					</div>
 					<div class="toggle-row compact">
-						<span class="toggle-label">Auto-Connect</span>
+						<span class="toggle-label" data-i18n="settings.autoConnect">Auto-Connect</span>
 						<label class="switch"><input type="checkbox" id="opt-autoconnect" checked><span class="slider"></span></label>
 					</div>
 					<div class="field">
-						<label class="field-label" for="opt-check-interval">Verbindungsprüfung (Sekunden)</label>
+						<label class="field-label" for="opt-check-interval" data-i18n="settings.checkInterval">Verbindungsprüfung (Sekunden)</label>
 						<input class="field-input" id="opt-check-interval" type="number" value="30" min="5" max="300">
 					</div>
 					<div class="field">
-						<label class="field-label" for="opt-poll-interval">Config-Aktualisierung (Sekunden)</label>
+						<label class="field-label" for="opt-poll-interval" data-i18n="settings.pollInterval">Config-Aktualisierung (Sekunden)</label>
 						<input class="field-input" id="opt-poll-interval" type="number" value="300" min="30" max="3600">
 					</div>
 				</div>
@@ -261,10 +268,10 @@
 			<!-- LOGS PAGE -->
 			<section class="page" id="page-logs">
 				<div class="page-header">
-					<h2 class="page-title">Logs</h2>
-					<button class="btn btn-secondary" id="btn-refresh-logs">Aktualisieren</button>
+					<h2 class="page-title" data-i18n="logs.title">Logs</h2>
+					<button class="btn btn-secondary" id="btn-refresh-logs" data-i18n="action.refresh">Aktualisieren</button>
 				</div>
-				<pre class="log-output" id="log-output">Lade Logs...</pre>
+				<pre class="log-output" id="log-output" data-i18n="logs.loading">Lade Logs...</pre>
 			</section>
 
 		</div>
