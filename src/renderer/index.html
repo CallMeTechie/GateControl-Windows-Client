@@ -114,36 +114,6 @@
 					<div class="traffic-grid" id="traffic-grid"></div>
 				</div>
 
-				<!-- Kill-Switch Toggle -->
-				<div class="toggle-row" id="killswitch-row">
-					<div class="toggle-info">
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-						<div>
-							<div class="toggle-label" data-i18n="killswitch.label">Kill-Switch</div>
-							<div class="toggle-desc" data-i18n="killswitch.desc">Blockiert Traffic ohne VPN</div>
-						</div>
-					</div>
-					<label class="switch">
-						<input type="checkbox" id="killswitch-toggle">
-						<span class="slider"></span>
-					</label>
-				</div>
-
-				<!-- RDP Allow Toggle -->
-				<div class="toggle-row" id="rdp-allow-row">
-					<div class="toggle-info">
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-						<div>
-							<div class="toggle-label" data-i18n="rdpAllow.label">Remote Desktop erlauben</div>
-							<div class="toggle-desc" data-i18n="rdpAllow.desc">RDP-Zugriff (Port 3389) über VPN freigeben</div>
-						</div>
-					</div>
-					<label class="switch">
-						<input type="checkbox" id="rdp-allow-toggle">
-						<span class="slider"></span>
-					</label>
-				</div>
-
 				<!-- Services List -->
 				<div class="services-section" id="services-section" style="display:none">
 					<div class="section-header">
@@ -230,6 +200,31 @@
 						</div>
 						<button class="btn btn-secondary" id="btn-save-split" style="margin-top:8px" data-i18n="action.save">Speichern</button>
 						<div id="split-status" style="display:none;font-size:10px;margin-top:6px;padding:6px 8px;border-radius:var(--radius-sm)"></div>
+					</div>
+				</div>
+
+				<!-- Security Settings -->
+				<div class="settings-group">
+					<h3 class="group-title" data-i18n="settings.security">Sicherheit</h3>
+					<div class="toggle-row compact" id="killswitch-row">
+						<div>
+							<span class="toggle-label" data-i18n="killswitch.label">Kill-Switch</span>
+							<div class="toggle-desc" style="font-size:10px;color:var(--text-3)" data-i18n="killswitch.desc">Blockiert Traffic ohne VPN</div>
+						</div>
+						<label class="switch">
+							<input type="checkbox" id="killswitch-toggle">
+							<span class="slider"></span>
+						</label>
+					</div>
+					<div class="toggle-row compact" id="rdp-allow-row">
+						<div>
+							<span class="toggle-label" data-i18n="rdpAllow.label">Remote Desktop erlauben</span>
+							<div class="toggle-desc" style="font-size:10px;color:var(--text-3)" data-i18n="rdpAllow.desc">RDP-Zugriff (Port 3389) über VPN freigeben</div>
+						</div>
+						<label class="switch">
+							<input type="checkbox" id="rdp-allow-toggle">
+							<span class="slider"></span>
+						</label>
 					</div>
 				</div>
 
