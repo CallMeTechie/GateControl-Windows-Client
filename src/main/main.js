@@ -558,7 +558,16 @@ async function initServices() {
 
 	connectionMonitor = new ConnectionMonitor({
 		interval: store.get('app.checkInterval', 30) * 1000,
+		apiClient,
 		onDisconnect: handleDisconnect,
+		onPeerDisabled: async (peerInfo) => {
+			log.warn(`Peer disabled on server (id: ${peerInfo?.id}, name: ${peerInfo?.name}) — disconnecting`);
+			await disconnectTunnel();
+			new Notification({
+				title: 'GateControl',
+				body: t('notify.peerDisabled'),
+			}).show();
+		},
 		onStats: (stats) => {
 			const now = Date.now();
 			if (tunnelState._lastStatsTime && stats.rxBytes !== undefined) {
