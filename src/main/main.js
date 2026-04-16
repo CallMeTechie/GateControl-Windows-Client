@@ -333,6 +333,21 @@ async function connectTunnel() {
 		showNotification(t('notify.connected'), t('notify.connected'));
 		log.info('Tunnel erfolgreich verbunden');
 
+		// Report OS hostname for internal DNS (best-effort, once per session).
+		// The server rate-limits to 3/min/token; calling once on connect is
+		// well within the budget and lets the admin see DESKTOP-xxx show up
+		// automatically in the peer list.
+		try {
+			const os = require('os');
+			const raw = os.hostname();
+			const sanitized = ApiClient.sanitizeHostnameForDns(raw);
+			if (sanitized && apiClient) {
+				apiClient.reportHostname(sanitized).catch(() => { /* best-effort */ });
+			}
+		} catch (err) {
+			log.debug('Hostname report skipped:', err.message);
+		}
+
 		checkPeerExpiry();
 
 	} catch (err) {
